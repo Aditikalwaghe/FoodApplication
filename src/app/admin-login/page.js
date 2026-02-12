@@ -8,8 +8,8 @@ export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const ADMIN_EMAIL = "admin@foodie.com";
-  const ADMIN_PASSWORD = "admin123456";
+  const ADMIN_EMAIL = "aditikalwaghe@gmail.com";
+  const ADMIN_PASSWORD = "aditi123";
 
   const handleLogin = () => {
     if (

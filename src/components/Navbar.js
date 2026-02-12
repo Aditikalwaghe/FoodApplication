@@ -21,6 +21,13 @@ const [isSignupDropdownOpen, setIsSignupDropdownOpen] = useState(false);
   ];
 const ordersLink = { name: "My Orders", href: "/orders" };
 
+const handleLogout = () => {
+  localStorage.removeItem("currentUser"); // remove logged in user
+  localStorage.removeItem("isLoggedIn");  // if you used this
+  setIsMenuOpen(false);
+  alert("Logged out successfully");
+  router.push("/login");
+};
 
 
   return (
@@ -266,7 +273,14 @@ const ordersLink = { name: "My Orders", href: "/orders" };
       My Orders
     </button>
 
-           
+           {/* Logout Button */}
+<button
+  onClick={handleLogout}
+  className="w-full text-center py-2 text-red-500 hover:bg-gray-100 transition rounded"
+>
+  Logout
+</button>
+
 
             
           </div>

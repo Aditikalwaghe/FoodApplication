@@ -28,7 +28,7 @@ export default function OrdersPage() {
       <h1 className="text-2xl font-bold mb-6 text-gray-500">Your Orders</h1>
 
       {orders.length === 0 ? (
-        <p>No orders yet.</p>
+        <p className="text-gray-400 text-center">No orders yet!</p>
       ) : (
         <div className="w-full max-w-6xl space-y-6 ">
           {orders.map((order, idx) => (

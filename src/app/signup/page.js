@@ -46,12 +46,13 @@ export default function Signup() {
 
     // Save user data (frontend demo)
     localStorage.setItem(
-      "user",
-      JSON.stringify({
-        name: form.name,
-        email: form.email,
-      })
-    );
+  "user",
+  JSON.stringify({
+    name: form.name,
+    email: form.email,
+    password: form.password,
+  })
+);
 
     alert("Account created successfully!");
     router.push("/");

@@ -24,6 +24,16 @@ export default function PaymentPage() {
     ]);
   }, []);
 
+  // ✅ Protect Page - Check Login
+useEffect(() => {
+  const isLoggedIn = localStorage.getItem("isLoggedIn");
+
+  if (!isLoggedIn) {
+    alert("Please login first!");
+    router.push("/login");
+  }
+}, []);
+
   // Form Data
   const [formData, setFormData] = useState({
     name: "",
@@ -61,13 +71,29 @@ const cartFoods =
   const total = subtotal + deliveryFee;
 
   // Show popup
-  const handlePaymentClick = () => {
-    if (!formData.name || !formData.address || !formData.email || !formData.mobile) {
-      alert("Please fill all required fields!");
-      return;
-    }
-    setShowPaymentPopup(true);
-  };
+const handlePaymentClick = () => {
+  if (!formData.name || !formData.address || !formData.email || !formData.mobile) {
+    alert("Please fill all required fields!");
+    return;
+  }
+
+  // ✅ Mobile validation (exactly 10 digits)
+  const mobileRegex = /^[0-9]{10}$/;
+
+  if (!mobileRegex.test(formData.mobile)) {
+    alert("Mobile number must be exactly 10 digits!");
+    return;
+  }
+
+  // ✅ Optional: Alternative mobile validation (if filled)
+  if (formData.altMobile && !mobileRegex.test(formData.altMobile)) {
+    alert("Alternative mobile must be exactly 10 digits!");
+    return;
+  }
+
+  setShowPaymentPopup(true);
+};
+
 
   // Confirm payment
   const handlePaymentConfirm = () => {

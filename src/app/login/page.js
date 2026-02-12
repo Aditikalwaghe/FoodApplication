@@ -21,35 +21,37 @@ export default function Login() {
   }
 
   function handleLogin() {
-    if (!form.email.includes("@")) {
-      alert("Please enter a valid email");
-      return;
-    }
+  if (!form.email.includes("@")) {
+    alert("Please enter a valid email");
+    return;
+  }
 
-    if (form.password.length < 6) {
-      alert("Password must be at least 6 characters");
-      return;
-    }
+  if (form.password.length < 6) {
+    alert("Password must be at least 6 characters");
+    return;
+  }
 
-    // Get saved user
-    const savedUser = JSON.parse(localStorage.getItem("user"));
+  const savedUser = JSON.parse(localStorage.getItem("user"));
 
-    if (!savedUser) {
-      alert("No account found. Please sign up first.");
-      return;
-    }
+  if (!savedUser) {
+    alert("No account found. Please sign up first.");
+    return;
+  }
 
-    if (savedUser.email !== form.email) {
-      alert("Invalid email or password");
-      return;
-    }
-
-    // Login success
+  // Proper validation
+  if (
+    savedUser.email === form.email &&
+    savedUser.password === form.password
+  ) {
     localStorage.setItem("isLoggedIn", "true");
+    localStorage.setItem("currentUser", savedUser.email);
 
     alert("Login successful!");
     router.push("/");
+  } else {
+    alert("Login not successful. Invalid credentials.");
   }
+}
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">

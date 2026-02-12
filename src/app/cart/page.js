@@ -43,6 +43,16 @@ const cartFoods = allFoods.filter(
   const subtotal = cartFoods.reduce((sum, food) => sum + food.price * cartItems[food.id], 0);
   const deliveryFee = subtotal >= 150 || subtotal === 0 ? 0 : 20;
   const total = subtotal + deliveryFee;
+const handleProceed = () => {
+  const isLoggedIn = localStorage.getItem("isLoggedIn");
+
+  if (!isLoggedIn) {
+    alert("Please login first!");
+    router.push("/login");
+  } else {
+    router.push("/payment");
+  }
+};
 
   return (
     <div className="min-h-screen p-6 bg-orange-50">
@@ -52,7 +62,7 @@ const cartFoods = allFoods.filter(
         <p className="text-center text-gray-400 ">Your cart is empty !</p>
       ) : (
         <>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ">
           {/* Cart Items */}
          
             {cartFoods.map((food) => (
