@@ -3,16 +3,10 @@
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { foodItemsData } from "@/data/foods";
+import { useRouter } from "next/navigation";
 
-const foodItemsData = [
-  { id: 1, name: "Caesar Salad", category: "Salad", price: 120, rating: 4.5, description: "Fresh greens with cheese", img: "/foods/caesar-salad.jpg" },
-  { id: 2, name: "Greek Salad", category: "Salad", price: 100, rating: 4, description: "Tomatoes, cucumbers & feta", img: "/foods/greek-salad.jpg" },
-  { id: 3, name: "Margherita Pizza", category: "Pizza", price: 200, rating: 4.8, description: "Classic cheese pizza", img: "/foods/margherita-pizza.jpg" },
-  { id: 4, name: "Pepperoni Pizza", category: "Pizza", price: 250, rating: 5, description: "Pepperoni & cheese", img: "/foods/pepperoni-pizza.jpg" },
-  { id: 5, name: "Cheeseburger", category: "Burger", price: 150, rating: 4.3, description: "Juicy beef burger", img: "/foods/cheeseburger.jpg" },
-  { id: 6, name: "Veggie Pasta", category: "Pasta", price: 180, rating: 4.2, description: "Healthy veggie pasta", img: "/foods/veggie-pasta.jpg" },
-  { id: 7, name: "Chocolate Cake", category: "Dessert", price: 90, rating: 5, description: "Rich chocolate cake", img: "/foods/chocolate-cake.jpg" },
-];
+
 const getAllFoods = () => {
   const adminFoods = JSON.parse(localStorage.getItem("foods")) || [];
 
@@ -43,6 +37,8 @@ const cartFoods = allFoods.filter(
   const subtotal = cartFoods.reduce((sum, food) => sum + food.price * cartItems[food.id], 0);
   const deliveryFee = subtotal >= 150 || subtotal === 0 ? 0 : 20;
   const total = subtotal + deliveryFee;
+
+const router = useRouter();
 const handleProceed = () => {
   const isLoggedIn = localStorage.getItem("isLoggedIn");
 
@@ -130,11 +126,13 @@ const handleProceed = () => {
             </div>
           </div>
 
-          <Link href="/payment">
-            <button className="mt-4 bg-orange-500 text-white px-6 py-2 rounded hover:bg-orange-600 transition center mx-auto block">
-              Proceed to Payment
-            </button>
-          </Link>
+          <button
+  onClick={handleProceed}
+  className="mt-4 bg-orange-500 text-white px-6 py-2 rounded hover:bg-orange-600 transition center mx-auto block"
+>
+  Proceed to Payment
+</button>
+
         </>
       )}
     </div>

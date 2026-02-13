@@ -44,18 +44,36 @@ export default function Signup() {
       return;
     }
 
-    // Save user data (frontend demo)
-    localStorage.setItem(
-  "user",
-  JSON.stringify({
+   // Get existing users from localStorage
+const existingUsers =
+  JSON.parse(localStorage.getItem("users")) || [];
+
+// Check if email already exists
+const emailExists = existingUsers.some(
+  (user) => user.email === form.email
+);
+
+if (emailExists) {
+  alert("An account with this email already exists!");
+  return;
+}
+
+// Add new user
+const updatedUsers = [
+  ...existingUsers,
+  {
     name: form.name,
     email: form.email,
     password: form.password,
-  })
-);
+  },
+];
 
-    alert("Account created successfully!");
-    router.push("/");
+// Save users array
+localStorage.setItem("users", JSON.stringify(updatedUsers));
+
+alert("Account created successfully!");
+router.push("/login");
+
   }
 
   return (

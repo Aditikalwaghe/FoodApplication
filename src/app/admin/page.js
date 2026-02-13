@@ -1,69 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-const defaultFoods = [
-  {
-    id: 1,
-    name: "Caesar Salad",
-    category: "Salad",
-    price: 120,
-    img: "/foods/caesar-salad.jpg",
-  },
-  {
-    
-    id: 2,
-    name: "Greek Salad",
-    category: "Salad",
-    price: 100,
-    img: "/foods/greek-salad.jpg",
-  },
-  {
-    id: 3,
-    name: "Margherita Pizza",
-    category: "Pizza",
-    price: 200,
-    img: "/foods/margherita-pizza.jpg",
-  },
-  {
-    id: 4,
-    name: "Pepperoni Pizza",
-    category: "Pizza",
-    price: 250,
-    img: "/foods/pepperoni-pizza.jpg",
-  },
-  {
-    id: 5,
-    name: "Cheeseburger",
-    category: "Burger",
-    price: 150,
-    img: "/foods/cheeseburger.jpg",
-  },
-  {
-    id: 6,
-    name: "Veggie Pasta",
-    category: "Pasta",
-    price: 180,
-    img: "/foods/veggie-pasta.jpg",
-  },
-  {
-    id: 7,
-    name: "Chocolate Cake",
-    category: "Dessert",
-    price: 90,
-    img: "/foods/chocolate-cake.jpg",
-  }
-];
+import { foodItemsData } from "@/data/foods";
+
 
 export default function AdminDashboard() {
-  const defaultFoods = [
-  { id: 1, name: "Caesar Salad", category: "Salad", price: 120, image: "/foods/caesar-salad.jpg" },
-  { id: 2, name: "Greek Salad", category: "Salad", price: 100, image: "/foods/greek-salad.jpg" },
-  { id: 3, name: "Margherita Pizza", category: "Pizza", price: 200, image: "/foods/margherita-pizza.jpg" },
-  { id: 4, name: "Pepperoni Pizza", category: "Pizza", price: 250, image: "/foods/pepperoni-pizza.jpg" },
-  { id: 5, name: "Cheeseburger", category: "Burger", price: 150, image: "/foods/cheeseburger.jpg" },
-  { id: 6, name: "Veggie Pasta", category: "Pasta", price: 180, image: "/foods/veggie-pasta.jpg" },
-  { id: 7, name: "Chocolate Cake", category: "Dessert", price: 90, image: "/foods/chocolate-cake.jpg" },
-];
+  
 
   const [activeTab, setActiveTab] = useState("add"); 
   // add | list | orders
@@ -205,7 +147,8 @@ function MenuList() {
 
   useEffect(() => {
     const adminFoods = JSON.parse(localStorage.getItem("foods")) || [];
-    setFoods([...defaultFoods, ...adminFoods]);
+   setFoods([...foodItemsData, ...adminFoods]);
+
   }, []);
 
   const removeFood = (id) => {
@@ -219,7 +162,7 @@ function MenuList() {
     const updatedFoods = adminFoods.filter((food) => food.id !== id);
 
     localStorage.setItem("foods", JSON.stringify(updatedFoods));
-    setFoods([...defaultFoods, ...updatedFoods]);
+setFoods([...foodItemsData, ...updatedFoods]);
   };
 
   return (

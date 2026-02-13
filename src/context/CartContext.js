@@ -1,24 +1,58 @@
 "use client";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
-  const [cartItems, setCartItems] = useState({}); // { id: qty }
+  const [cartItems, setCartItems] = useState({});
 
-  const addToCart = (id) => {
-    setCartItems((prev) => ({
-      ...prev,
-      [id]: (prev[id] || 0) + 1,
-    }));
-  };
+// ✅ Load cart for logged-in user
+useEffect(() => {
+  const currentUser = localStorage.getItem("currentUser");
+
+  if (currentUser) {
+    const savedCart = localStorage.getItem(`cart_${currentUser}`);
+    if (savedCart) {
+      setCartItems(JSON.parse(savedCart));
+    }
+  }
+}, []);
+
+// ✅ Save cart for logged-in user
+useEffect(() => {
+  const currentUser = localStorage.getItem("currentUser");
+
+  if (currentUser) {
+    localStorage.setItem(
+      `cart_${currentUser}`,
+      JSON.stringify(cartItems)
+    );
+  }
+}, [cartItems]);
+
+
+const addToCart = (id) => {
+  setCartItems((prev) => ({
+    ...prev,
+    [id]: (prev[id] || 0) + 1,
+  }));
+};
 
   const removeFromCart = (id) => {
-    setCartItems((prev) => ({
-      ...prev,
-      [id]: Math.max((prev[id] || 0) - 1, 0),
-    }));
-  };
+  setCartItems((prev) => {
+    const updated = { ...prev };
+    if (!updated[id]) return prev;
+
+    if (updated[id] === 1) {
+      delete updated[id];
+    } else {
+      updated[id] -= 1;
+    }
+
+    return updated;
+  });
+};
+
 
   // ✅ Add this function to remove item completely
   const removeItemFromCart = (id) => {

@@ -31,28 +31,29 @@ export default function Login() {
     return;
   }
 
-  const savedUser = JSON.parse(localStorage.getItem("user"));
+  const users = JSON.parse(localStorage.getItem("users")) || [];
 
-  if (!savedUser) {
-    alert("No account found. Please sign up first.");
-    return;
-  }
-
-  // Proper validation
-  if (
-    savedUser.email === form.email &&
-    savedUser.password === form.password
-  ) {
-    localStorage.setItem("isLoggedIn", "true");
-    localStorage.setItem("currentUser", savedUser.email);
-
-    alert("Login successful!");
-    router.push("/");
-  } else {
-    alert("Login not successful. Invalid credentials.");
-  }
+if (users.length === 0) {
+  alert("No account found. Please sign up first.");
+  return;
 }
 
+// Find matching user
+const matchedUser = users.find(
+  (user) =>
+    user.email === form.email &&
+    user.password === form.password
+);
+
+if (matchedUser) {
+  alert("Login successful!");
+
+  router.push("/?login=true");
+} else {
+  alert("Login not successful. Invalid credentials.");
+}
+
+  }
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
