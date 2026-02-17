@@ -60,6 +60,15 @@ function AddFood() {
     price: "",
     img: "",
   });
+  useEffect(() => {
+  const isAdmin = localStorage.getItem("isAdmin");
+
+  if (!isAdmin) {
+    alert("Unauthorized Access");
+    window.location.href = "/";
+  }
+}, []);
+
 
  const handleAdd = () => {
   if (!food.name.trim()) {
@@ -281,13 +290,37 @@ function Orders() {
                 onChange={(e) => updateStatus(idx, e.target.value)}
                 className="border px-2 py-1 rounded text-sm"
               >
+                
                 <option value="Pending">Pending</option>
                 <option value="Confirmed">Confirmed</option>
                 <option value="Preparing">Preparing</option>
                 <option value="Out for Delivery">Out for Delivery</option>
-                <option value="Completed">Completed</option>
+<option value="Delivered">Delivered</option>
                 <option value="Cancelled">Cancelled</option>
               </select>
+              {order.rating && (
+  <div className="flex items-center gap-1 mt-2">
+    <span className="text-sm font-medium text-gray-600">
+      Rating:
+    </span>
+
+    {[1, 2, 3, 4, 5].map((num) => (
+      <span
+        key={num}
+        className={`text-lg ${
+          order.rating >= num ? "text-yellow-500" : "text-gray-300"
+        }`}
+      >
+        ★
+      </span>
+    ))}
+
+    <span className="text-sm text-gray-600 ml-1">
+      ({order.rating}/5)
+    </span>
+  </div>
+)}
+
             </div>
           </div>
         </div>

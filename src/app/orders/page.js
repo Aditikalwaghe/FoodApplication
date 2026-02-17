@@ -53,7 +53,29 @@ export default function OrdersPage() {
 };
 
 
+const handleRating = (orderId, rating) => {
+  const allOrders = JSON.parse(localStorage.getItem("orders")) || [];
+
+  const updatedOrders = allOrders.map(order =>
+    order.id === orderId
+      ? { ...order, rating }
+      : order
+  );
+
+  localStorage.setItem("orders", JSON.stringify(updatedOrders));
+
+  const currentUser = localStorage.getItem("currentUser");
+
+  const userOrders = updatedOrders.filter(
+    (order) => order.user === currentUser
+  );
+
+  setOrders(userOrders);
+};
+
+
   return (
+    
     <div className="min-h-screen p-4 sm:p-6 md:p-8 bg-orange-100 flex flex-col items-center">
       <h1 className="text-2xl font-bold mb-6 text-gray-500">Your Orders</h1>
 
@@ -103,6 +125,9 @@ export default function OrdersPage() {
 
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-medium text-xs sm:text-sm">Status: {order.status}</span>
+                
+
+
                   <button
                     onClick={() => router.push("/track-order")}
                     className="px-2 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 transition text-xs sm:text-sm"
@@ -111,13 +136,40 @@ export default function OrdersPage() {
                   </button>
 
                   {/* ✅ Delete Button */}
-                  <button
+                  <button 
                     onClick={() => handleDelete(order.id)}
                     className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition text-xs sm:text-sm"
                   >
                     Delete
                   </button>
                 </div>
+             {order.status === "Delivered" && (
+  <div className="flex items-center gap-2 mt-1">
+    <span className="font-medium text-xs sm:text-sm">
+      Ratings:
+    </span>
+
+    {[1, 2, 3, 4, 5].map((num) => (
+      <button
+        key={num}
+        disabled={order.rating}
+        onClick={() => handleRating(order.id, num)}
+        className={`text-lg ${
+          order.rating >= num ? "text-yellow-300" : "text-white"
+        } ${order.rating ? "cursor-not-allowed" : "cursor-pointer"}`}
+      >
+        ★
+      </button>
+    ))}
+
+    {order.rating && (
+      <span className="text-xs text-gray-600 ml-2">
+        {order.rating} / 5
+      </span>
+    )}
+  </div>
+)}
+
               </div>
             </div>
           ))}

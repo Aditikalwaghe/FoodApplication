@@ -7,7 +7,8 @@ import { foodItemsData } from "@/data/foods";
 
 export default function PaymentPage() {
   const router = useRouter();
-  const { cartItems } = useCart() || {};
+const { cartItems, clearCart } = useCart();
+ 
  // ✅ State to hold all foods (default + admin)
   const [allFoods, setAllFoods] = useState([]);
 
@@ -26,13 +27,14 @@ export default function PaymentPage() {
 
   // ✅ Protect Page - Check Login
 useEffect(() => {
-  const isLoggedIn = localStorage.getItem("isLoggedIn");
+  const currentUser = localStorage.getItem("currentUser");
 
-  if (!isLoggedIn) {
+  if (!currentUser) {
     alert("Please login first!");
     router.push("/login");
   }
-}, []);
+}, [router]);
+
 
   // Form Data
   const [formData, setFormData] = useState({
@@ -97,6 +99,16 @@ const handlePaymentClick = () => {
 
   // Confirm payment
   const handlePaymentConfirm = () => {
+    if (!selectedPaymentMethod) {
+  alert("Please select a payment method!");
+  return;
+}
+
+if (!paymentProof) {
+  alert("Please upload payment proof!");
+  return;
+}
+
   // 1️⃣ Create the order object
  const currentUser = localStorage.getItem("currentUser");
 
@@ -141,7 +153,9 @@ const order = {
 
   // 5️⃣ Alert and redirect to Orders page
   alert(`Payment of ₹${total} confirmed via ${selectedPaymentMethod}!`);
-  router.push("/orders");
+clearCart();
+router.push("/orders");
+
 };
 
 

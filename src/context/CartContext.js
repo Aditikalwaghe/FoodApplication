@@ -62,19 +62,32 @@ const addToCart = (id) => {
       return updated;
     });
   };
+  // ✅ Clear entire cart after payment
+const clearCart = () => {
+  const currentUser = localStorage.getItem("currentUser");
+
+  if (currentUser) {
+    localStorage.removeItem(`cart_${currentUser}`);
+  }
+
+  setCartItems({});
+};
+
 
   const cartCount = Object.values(cartItems).reduce((sum, qty) => sum + qty, 0);
 
   return (
     <CartContext.Provider
-      value={{
-        cartItems,
-        addToCart,
-        removeFromCart,
-        removeItemFromCart, // ✅ expose it here
-        cartCount,
-      }}
-    >
+  value={{
+    cartItems,
+    addToCart,
+    removeFromCart,
+    removeItemFromCart,
+    clearCart,  // ✅ ADD THIS
+    cartCount,
+  }}
+>
+
       {children}
     </CartContext.Provider>
   );
