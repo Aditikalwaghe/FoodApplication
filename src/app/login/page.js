@@ -20,7 +20,7 @@ export default function Login() {
     });
   }
 
-  function handleLogin() {
+ function handleLogin() {
   if (!form.email.includes("@")) {
     alert("Please enter a valid email");
     return;
@@ -31,29 +31,36 @@ export default function Login() {
     return;
   }
 
-  const users = JSON.parse(localStorage.getItem("users")) || [];
+  const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
 
-if (users.length === 0) {
-  alert("No account found. Please sign up first.");
-  return;
-}
-
-// Find matching user
-const matchedUser = users.find(
-  (user) =>
-    user.email === form.email &&
-    user.password === form.password
-);
-
-if (matchedUser) {
-  alert("Login successful!");
-
-  router.push("/?login=true");
-} else {
-  alert("Login not successful. Invalid credentials.");
-}
-
+  if (storedUsers.length === 0) {
+    alert("No account found. Please sign up first.");
+    return;
   }
+
+  const matchedUser = storedUsers.find(
+    (user) =>
+      user.email === form.email &&
+      user.password === form.password
+  );
+
+  if (matchedUser) {
+    alert("Login successful!");
+
+    localStorage.setItem("isLoggedIn", "true");
+    localStorage.setItem("currentUser", matchedUser.email);
+
+    if (matchedUser.role === "admin") {
+      localStorage.setItem("isAdmin", "true");
+    }
+
+    router.push("/");
+  } else {
+    alert("Invalid email or password");
+  }
+}
+
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">

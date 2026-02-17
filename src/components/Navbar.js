@@ -4,28 +4,26 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
-import { useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 export default function Navbar() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const loginParam = searchParams.get("login");
+  const pathname = usePathname();
+
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { cartCount } = useCart();
   const [isSignupDropdownOpen, setIsSignupDropdownOpen] = useState(false);
+const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  useEffect(() => {
-    if (loginParam === "true") {
-      setIsLoggedIn(true);
-    }
-  }, [loginParam]);
+useEffect(() => {
+  const user = localStorage.getItem("isLoggedIn");
+  const admin = localStorage.getItem("isAdmin");
 
-  useEffect(() => {
-    const user = localStorage.getItem("currentUser");
-    setIsLoggedIn(!!user);
-  }, []);
+  setIsLoggedIn(user === "true" || admin === "true");
+}, [pathname]);
+
+
 
   const links = [
     { name: "Home", href: "/" },
@@ -35,10 +33,15 @@ export default function Navbar() {
   ];
   const ordersLink = { name: "My Orders", href: "/orders" };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    router.push("/");
-  };
+ const handleLogout = () => {
+  localStorage.removeItem("isLoggedIn");
+  localStorage.removeItem("currentUser");
+ localStorage.removeItem("isAdmin");
+  setIsLoggedIn(false);
+  router.replace("/");
+
+};
+
 
   return (
     <nav className="bg-white  sticky top-0  z-50 ">
@@ -147,6 +150,7 @@ export default function Navbar() {
           </button>
 
           {/* Sign Up with dropdown */}
+          {!isLoggedIn && (
           <div className="relative">
             <button
               onClick={() => setIsSignupDropdownOpen(!isSignupDropdownOpen)}
@@ -187,6 +191,7 @@ export default function Navbar() {
               </div>
             )}
           </div>
+          )}
         </div>
 
         {/* Mobile-like dropdown (optional) triggered by hamburger */}
