@@ -98,19 +98,31 @@ const handlePaymentClick = () => {
   // Confirm payment
   const handlePaymentConfirm = () => {
   // 1️⃣ Create the order object
- const order = {
+ const currentUser = localStorage.getItem("currentUser");
+
+const order = {
+  id: Date.now(), // unique order ID
+  user: currentUser, // attach order to logged-in user
+  date: new Date().toLocaleString(), // order date
+
   name: formData.name,
   address: formData.address,
   mobile: formData.mobile,
   email: formData.email,
   altMobile: formData.altMobile,
+
   items: cartFoods.map((food) => ({
     id: food.id,
     name: food.name,
     price: food.price,
     quantity: cartItems[food.id],
   })),
-  totalItems: cartFoods.reduce((sum, food) => sum + cartItems[food.id], 0),
+
+  totalItems: cartFoods.reduce(
+    (sum, food) => sum + cartItems[food.id],
+    0
+  ),
+
   subtotal,
   deliveryFee,
   total,

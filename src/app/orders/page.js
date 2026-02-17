@@ -8,20 +8,50 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
 
   // Load orders from localStorage
-  useEffect(() => {
-    const storedOrders = JSON.parse(localStorage.getItem("orders")) || [];
-    setOrders(storedOrders);
-  }, []);
+ useEffect(() => {
+  const currentUser = localStorage.getItem("currentUser");
+
+  if (!currentUser) {
+    alert("Please login first!");
+    router.push("/login");
+    return;
+  }
+
+  const storedOrders = JSON.parse(localStorage.getItem("orders")) || [];
+
+  // 🔐 Filter only this user's orders
+  const userOrders = storedOrders.filter(
+    (order) => order.user === currentUser
+  );
+
+  setOrders(userOrders);
+}, []);
+
 
   // ✅ Delete order function
-  const handleDelete = (index) => {
-    if (confirm("Are you sure you want to delete this order?")) {
-      const updatedOrders = [...orders];
-      updatedOrders.splice(index, 1); // remove order at index
-      setOrders(updatedOrders);
-      localStorage.setItem("orders", JSON.stringify(updatedOrders));
-    }
-  };
+  const handleDelete = (orderId) => {
+  if (confirm("Are you sure you want to delete this order?")) {
+
+    const allOrders = JSON.parse(localStorage.getItem("orders")) || [];
+
+    // Remove only the selected order
+    const updatedOrders = allOrders.filter(
+      (order) => order.id !== orderId
+    );
+
+    localStorage.setItem("orders", JSON.stringify(updatedOrders));
+
+    // Update UI (only current user's orders)
+    const currentUser = localStorage.getItem("currentUser");
+
+    const userOrders = updatedOrders.filter(
+      (order) => order.user === currentUser
+    );
+
+    setOrders(userOrders);
+  }
+};
+
 
   return (
     <div className="min-h-screen p-4 sm:p-6 md:p-8 bg-orange-100 flex flex-col items-center">
@@ -31,6 +61,7 @@ export default function OrdersPage() {
         <p className="text-gray-400 text-center">No orders yet!</p>
       ) : (
         <div className="w-full max-w-6xl space-y-6 ">
+          
           {orders.map((order, idx) => (
             <div
               key={idx}
@@ -38,13 +69,17 @@ export default function OrdersPage() {
             >
               {/* Left: Order Items */}
               <div className="flex-1 min-w-[200px]">
-                <h2 className="font-semibold mb-2 text-sm sm:text-base">Order #{idx + 1}</h2>
+                <h2 className="font-semibold mb-2 text-sm sm:text-base">Order {idx + 1}</h2>
+                <p className="text-xs">Order ID: {order.id}</p>
+                <p className="text-xs py-1">Order Date: {order.date}</p>
+
                 {order.items.map((food) => (
                   <div key={food.id} className="flex justify-between mb-1 text-xs sm:text-sm">
                     <span>{food.name} x {food.quantity}</span>
                     <span className="font-semibold px-20"> ₹{food.price * food.quantity}</span>
                   </div>
                 ))}
+                
               </div>
 
               {/* Right: Totals, Status & Actions */}
@@ -77,7 +112,7 @@ export default function OrdersPage() {
 
                   {/* ✅ Delete Button */}
                   <button
-                    onClick={() => handleDelete(idx)}
+                    onClick={() => handleDelete(order.id)}
                     className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition text-xs sm:text-sm"
                   >
                     Delete
