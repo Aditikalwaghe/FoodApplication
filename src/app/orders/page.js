@@ -55,6 +55,7 @@ export default function OrdersPage() {
 
 const handleRating = (orderId, rating) => {
   const allOrders = JSON.parse(localStorage.getItem("orders")) || [];
+  const currentUser = localStorage.getItem("currentUser");
 
   const updatedOrders = allOrders.map(order =>
     order.id === orderId
@@ -64,13 +65,48 @@ const handleRating = (orderId, rating) => {
 
   localStorage.setItem("orders", JSON.stringify(updatedOrders));
 
-  const currentUser = localStorage.getItem("currentUser");
+  const order = updatedOrders.find(o => o.id === orderId);
+
+  const reviews = JSON.parse(localStorage.getItem("reviews")) || [];
+
+  order.items.forEach(item => {
+    // prevent duplicate review
+    const alreadyReviewed = reviews.find(
+      r => r.foodId === item.id && r.user === currentUser
+    );
+
+    if (!alreadyReviewed) {
+      reviews.push({
+        foodId: item.id,
+        user: currentUser,
+        rating,
+        comment: ""
+      });
+    }
+  });
+
+  localStorage.setItem("reviews", JSON.stringify(reviews));
 
   const userOrders = updatedOrders.filter(
-    (order) => order.user === currentUser
+    order => order.user === currentUser
   );
 
   setOrders(userOrders);
+};
+
+// 🔹 Handle half-star ratings
+const handleHalfRating = (orderId, event) => {
+  const order = orders.find(o => o.id === orderId);
+  if (order.rating) return; // Prevent changing rating if already rated
+
+  const { left, width } = event.currentTarget.getBoundingClientRect();
+  const clickX = event.clientX - left;
+  const relativeX = clickX / width; // 0 → 1 across all stars
+
+  // Convert to 0.5 increments (0.5, 1, 1.5, ..., 5)
+  const newRating = Math.ceil(relativeX * 10) / 2;
+
+  handleRating(orderId, newRating);
 };
 
 
@@ -149,18 +185,28 @@ const handleRating = (orderId, rating) => {
       Ratings:
     </span>
 
-    {[1, 2, 3, 4, 5].map((num) => (
-      <button
-        key={num}
-        disabled={order.rating}
-        onClick={() => handleRating(order.id, num)}
-        className={`text-lg ${
-          order.rating >= num ? "text-yellow-300" : "text-white"
-        } ${order.rating ? "cursor-not-allowed" : "cursor-pointer"}`}
+    <div
+  className="flex items-center gap-1 mt-1 cursor-pointer"
+  onClick={(e) => handleHalfRating(order.id, e)}
+>
+  {Array.from({ length: 5 }).map((_, i) => {
+    const starValue = i + 1;
+    return (
+      <span
+        key={i}
+        className={`text-2xl ${
+          order.rating >= starValue ? "text-yellow-300" :
+          order.rating >= starValue - 0.5 ? "text-yellow-200" :
+          "text-white"
+        }`}
       >
         ★
-      </button>
-    ))}
+      </span>
+    );
+  })}
+ 
+</div>
+
 
     {order.rating && (
       <span className="text-xs text-gray-600 ml-2">

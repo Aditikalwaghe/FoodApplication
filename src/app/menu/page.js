@@ -22,7 +22,16 @@ export default function Menu() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
-  
+  const [reviews, setReviews] = useState([]);
+
+
+  useEffect(() => {
+  const storedReviews =
+    JSON.parse(localStorage.getItem("reviews")) || [];
+  setReviews(storedReviews);
+}, []);
+
+
 const [foods, setFoods] = useState([]);
 useEffect(() => {
   const loadFoods = () => {
@@ -63,12 +72,63 @@ useEffect(() => {
     return () => window.removeEventListener("resize", checkArrows);
   }, []);
 
-  const filteredFoods =
+  const getAverageRating = (foodId) => {
+  const foodReviews = reviews.filter(
+    (r) => r.foodId === foodId
+  );
+
+  if (foodReviews.length === 0)
+    return { avg: 0, count: 0 };
+
+  const total = foodReviews.reduce(
+    (sum, r) => sum + r.rating,
+    0
+  );
+
+  return {
+    avg: total / foodReviews.length,
+    count: foodReviews.length,
+  };
+};
+
+
+const renderStars = (avg) => {
+  return (
+    <span className="relative inline-block text-yellow-400">
+      {[...Array(5)].map((_, i) => (
+        <span key={i} className="relative inline-block">
+          {/* Filled part of star */}
+          <span
+            className="absolute top-0 left-0 overflow-hidden"
+            style={{ width: `${Math.min(Math.max(avg - i, 0), 1) * 100}%` }}
+          >
+            ★
+          </span>
+          {/* Empty star */}
+          <span className="text-gray-300">★</span>
+        </span>
+      ))}
+    </span>
+  );
+};
+
+  let filteredFoods =
   selectedCategory === "All"
     ? foods
-    : foods.filter(food => 
-        food.category.toLowerCase() === selectedCategory.toLowerCase()
+    : foods.filter(
+        (food) =>
+          food.category.toLowerCase() ===
+          selectedCategory.toLowerCase()
       );
+
+// 🔥 Sort by highest average rating
+filteredFoods = [...filteredFoods].sort((a, b) => {
+  return (
+    getAverageRating(b.id).avg -
+    getAverageRating(a.id).avg
+  );
+});
+
 
  
 
@@ -170,7 +230,13 @@ useEffect(() => {
 
       {/* Food Items */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-        {filteredFoods.map((food) => (
+        {filteredFoods.map((food) => {
+  const { avg, count } = getAverageRating(food.id);
+  
+
+
+  return (
+
           <div
   key={food.id}
   className="border rounded-lg shadow p-4 flex flex-col justify-between hover:scale-105 transition bg-white"
@@ -185,13 +251,26 @@ useEffect(() => {
         </div>
 
             <h3 className="text-lg font-semibold text-gray-800">{food.name}</h3>
+            <div className="flex items-center gap-2 text-sm mt-1">
+  {renderStars(avg)}
+
+  <span className="text-gray-500">
+    ({count})
+  </span>
+
+  {count > 0 && (
+    <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-semibold">
+      {avg.toFixed(1)}
+    </span>
+  )}
+</div>
+
+
+
             <p className="text-gray-600 text-sm">{food.description}</p>
             <div className="flex justify-between items-center mt-2">
               <p className="font-bold text-orange-500">₹{food.price}</p>
-              <p className="text-yellow-500">
-                {"★".repeat(Math.floor(food.rating))}{" "}
-                {"☆".repeat(5 - Math.floor(food.rating))}
-              </p>
+             
             </div>
 
             {/* Add / Minus */}
@@ -218,7 +297,9 @@ useEffect(() => {
               </p>
             </div>
           </div>
-        ))}
+  );
+})}
+
       </div>
     </div>
   );
