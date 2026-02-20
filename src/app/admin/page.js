@@ -238,96 +238,129 @@ function Orders() {
     localStorage.setItem("orders", JSON.stringify(updatedOrders));
   };
 
+
+  const handleAdminDelete = (orderId) => {
+  if (confirm("Are you sure you want to delete this order permanently?")) {
+    const allOrders = JSON.parse(localStorage.getItem("orders")) || [];
+    const updatedOrders = allOrders.filter(order => order.id !== orderId);
+    localStorage.setItem("orders", JSON.stringify(updatedOrders));
+    setOrders(updatedOrders);
+  }
+};
+
+
   return (
-    <div className="bg-white p-4 rounded shadow space-y-4">
-  <h2 className="text-xl font-bold mb-4 text-gray-500 text-center">Orders</h2>
+    <div className="bg-white p-4 rounded shadow space-y-6">
+      <h2 className="text-2xl font-bold mb-4 text-gray-500 text-center">Orders</h2>
 
-  {orders.length === 0 ? (
-    <p>No orders placed yet.</p>
-  ) : (
-    <div className="flex flex-col gap-4 ">
-      {orders.map((order, idx) => (
-        <div
-          key={idx}
-          className="p-4 border rounded flex flex-col gap-3"
-        >
-          {/* Row 1: Order # and Food List */}
-          <div className="flex justify-between items-start flex-wrap gap-4">
-            {/* Order Number */}
-            <div className="min-w-[100px]">
-              <p className="font-semibold text-gray-700">Order #{idx + 1}</p>
-            </div>
+      {orders.length === 0 ? (
+        <p className="text-gray-400 text-center">No orders placed yet.</p>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {orders.map((order, idx) => (
+            <div
+              key={idx}
+className="relative p-4 border rounded-lg shadow hover:shadow-lg transition flex flex-col gap-3 bg-gradient-to-r from-orange-50 to-orange-100"
+            >
+              {/* Admin Delete Cross Button */}
+<button
+  onClick={() => handleAdminDelete(order.id)}
+  className="absolute top-2 right-2 text-red-500 font-bold text-xl hover:text-red-700 transition"
+  title="Delete Order"
+>
+  &times;
+</button>
 
-            {/* Foods & Qty */}
-            <div className="flex flex-col flex-1 gap-1">
-              {order.items.map((food) => (
-                <p key={food.id} className="text-gray-600">
-                  {food.name} x {food.quantity}
-                </p>
-              ))}
-            </div>
+              {/* Row 1: Order Info */}
+<div className="flex flex-col sm:flex-row justify-between gap-4">
+<div className="flex flex-col min-w-[100px] sm:min-w-[150px]">
+                  <p className="font-semibold text-gray-700">Order #{idx + 1}</p>
+                  <p className="text-xs text-gray-500">ID: {order.id}</p>
+                  <p className="text-xs text-gray-500">Date: {order.date}</p>
+                </div>
 
-            {/* Total Price */}
-            <div className="min-w-[120px]">
-              <p className="font-semibold text-gray-700">Total: ₹{order.total}</p>
-            </div>
-          </div>
-
-          {/* Row 2: User Info and Status */}
-          <div className="flex justify-between items-center flex-wrap gap-4 border-t pt-2">
-            {/* User Info */}
-            <div className="flex flex-col text-gray-600 min-w-[200px]">
-              <p className="font-medium text-gray-700">{order.name}</p>
-              <p>{order.address}</p>
-              <p>{order.mobile}</p>
-            </div>
-
-            {/* Status Dropdown */}
-            <div className="min-w-[150px]">
-              <span className="text-sm font-medium text-gray-600">Status:</span>
-              <select
-                value={order.status}
-                onChange={(e) => updateStatus(idx, e.target.value)}
-                className="border px-2 py-1 rounded text-sm"
-              >
-                
-                <option value="Pending">Pending</option>
-                <option value="Confirmed">Confirmed</option>
-                <option value="Preparing">Preparing</option>
-                <option value="Out for Delivery">Out for Delivery</option>
-<option value="Delivered">Delivered</option>
-                <option value="Cancelled">Cancelled</option>
-              </select>
-              {order.rating && (
-  <div className="flex items-center gap-1 mt-2">
-    <span className="text-sm font-medium text-gray-600">
-      Rating:
-    </span>
-
-    {[1, 2, 3, 4, 5].map((num) => (
-      <span
-        key={num}
-        className={`text-lg ${
-          order.rating >= num ? "text-yellow-500" : "text-gray-300"
-        }`}
-      >
-        ★
-      </span>
-    ))}
-
-    <span className="text-sm text-gray-600 ml-1">
-      ({order.rating}/5)
-    </span>
-  </div>
-)}
-
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  )}
+                {/* Foods List */}
+<div className="flex-1 max-h-12 overflow-y-auto border rounded p-1 bg-white">
+  {order.items.map((food) => (
+    <p key={food.id} className="text-gray-600 text-sm">
+      {food.name} x {food.quantity} - ₹{food.price * food.quantity}
+    </p>
+  ))}
 </div>
 
+
+
+                {/* Total */}
+                <div className="min-w-[120px]">
+                  <p className="font-semibold text-gray-700 text-sm">Total: ₹{order.total}</p>
+                </div>
+              </div>
+
+              {/* Row 2: User Info and Status */}
+              <div className="flex justify-between flex-wrap gap-4 border-t pt-2 items-start">
+                <div className="flex flex-col text-gray-600 min-w-[200px]">
+                  <p className="font-medium text-gray-700">{order.name}</p>
+                  <p className="text-sm">{order.address}</p>
+                  <p className="text-sm">{order.mobile}</p>
+                </div>
+
+<div className="flex flex-col sm:min-w-[150px] w-full sm:w-auto">
+                  {/* Status Dropdown */}
+                  <span className="text-sm font-medium text-gray-600">Status:</span>
+                  <select
+  value={order.status}
+  onChange={(e) => {
+    // prevent changing if user cancelled or delivered
+    if (order.status === "Cancelled by User" || order.status === "Delivered") return;
+    updateStatus(idx, e.target.value);
+  }}
+  className={`border px-2 py-1 rounded text-sm ${
+    order.status === "Cancelled by User" || order.status === "Delivered"
+      ? "bg-gray-200 cursor-not-allowed"
+      : ""
+  }`}
+  disabled={order.status === "Cancelled by User" || order.status === "Delivered"}
+>
+  <option value="Pending">Pending</option>
+  <option value="Confirmed">Confirmed</option>
+  <option value="Preparing">Preparing</option>
+  <option value="Out for Delivery">Out for Delivery</option>
+  <option value="Delivered">Delivered</option>
+  <option value="Cancelled">Cancelled</option>
+</select>
+
+
+                  {/* Ratings */}
+                  {order.rating && (
+                    <div className="flex items-center mt-2 gap-1">
+                      <span className="text-sm font-medium text-gray-600">Rating:</span>
+                      {Array.from({ length: 5 }).map((_, i) => {
+  const fullStar = i + 1 <= Math.floor(order.rating);
+  const halfStar = !fullStar && i + 1 === Math.ceil(order.rating) && order.rating % 1 !== 0;
+  return (
+    <span
+      key={i}
+      className={`text-lg ${fullStar || halfStar ? "text-yellow-500" : "text-gray-300"}`}
+    >
+      {fullStar ? "★" : halfStar ? "⯨" : "★"}
+    </span>
+  );
+})}
+
+                      <span className="text-sm text-gray-600 ml-1">({order.rating}/5)</span>
+                    </div>
+                  )}
+
+                  {/* Show cancelled in red */}
+                  {order.status === "Cancelled by User" && (
+                    <p className="text-red-500 font-semibold mt-1">Cancelled by User</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
