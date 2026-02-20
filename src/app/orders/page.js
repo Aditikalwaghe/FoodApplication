@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 export default function OrdersPage() {
   const router = useRouter();
   const [orders, setOrders] = useState([]);
+  const [reviews, setReviews] = useState([]);
 
   // Load orders from localStorage
   useEffect(() => {
@@ -21,107 +22,126 @@ export default function OrdersPage() {
 
     // 🔐 Filter only this user's orders
     const userOrders = storedOrders.filter(
-      (order) => order.user === currentUser
+      (order) => order.user === currentUser,
     );
 
     setOrders(userOrders);
+    const storedReviews = JSON.parse(localStorage.getItem("reviews")) || [];
+    setReviews(storedReviews);
   }, []);
 
   // ✅ Delete order function
- const handleDelete = (orderId) => {
-  if (confirm("Are you sure you want to delete this order?")) {
-    const allOrders = JSON.parse(localStorage.getItem("orders")) || [];
-    const currentUser = localStorage.getItem("currentUser");
+  const handleDelete = (orderId) => {
+    if (confirm("Are you sure you want to delete this order?")) {
+      const allOrders = JSON.parse(localStorage.getItem("orders")) || [];
+      const currentUser = localStorage.getItem("currentUser");
 
-    // Mark as "Cancelled by User" for admin
-    const updatedOrders = allOrders.map((order) => {
-      if (order.id === orderId && order.user === currentUser) {
-        return { ...order, status: "Cancelled by User" };
-      }
-      return order;
-    });
+      // Mark as "Cancelled by User" for admin
+      const updatedOrders = allOrders.map((order) => {
+        if (order.id === orderId && order.user === currentUser) {
+          return { ...order, status: "Cancelled by User" };
+        }
+        return order;
+      });
 
-    localStorage.setItem("orders", JSON.stringify(updatedOrders));
+      localStorage.setItem("orders", JSON.stringify(updatedOrders));
 
-    // Remove from user's view
-    const userOrders = updatedOrders.filter(
-      (order) => order.user === currentUser && order.id !== orderId
-    );
-    setOrders(userOrders);
-  }
-};
-
+      // Remove from user's view
+      const userOrders = updatedOrders.filter(
+        (order) => order.user === currentUser && order.id !== orderId,
+      );
+      setOrders(userOrders);
+    }
+  };
 
   // ✅ Handle rating (one-time per order)
-  const handleRating = (orderId, rating) => {
+  const handleRating = (orderId, foodId, rating, comment) => {
     const allOrders = JSON.parse(localStorage.getItem("orders")) || [];
-    const currentUser = localStorage.getItem("currentUser");
+    const allReviews = JSON.parse(localStorage.getItem("reviews")) || [];
 
-    // Prevent updating if already rated
     const order = allOrders.find((o) => o.id === orderId);
-    if (order.rating) return;
+    if (!order) return;
 
-    // Update order rating
-    const updatedOrders = allOrders.map((o) =>
-      o.id === orderId ? { ...o, rating } : o
+    const customerName = order.name; // ✅ Name from payment page
+
+    const existingReview = allReviews.find(
+      (r) => r.orderId === orderId && r.foodId === foodId,
     );
-    localStorage.setItem("orders", JSON.stringify(updatedOrders));
 
-    // Update reviews
-    const reviews = JSON.parse(localStorage.getItem("reviews")) || [];
-    order.items.forEach((item) => {
-      const alreadyReviewed = reviews.find(
-        (r) => r.foodId === item.id && r.user === currentUser
-      );
-      if (!alreadyReviewed) {
-        reviews.push({
-          foodId: item.id,
-          user: currentUser,
-          rating,
-          comment: "",
-        });
-      }
-    });
-    localStorage.setItem("reviews", JSON.stringify(reviews));
+    if (existingReview) {
+      alert("You already rated this item for this order.");
+      return;
+    }
 
-    // Update state
-    setOrders(updatedOrders.filter((o) => o.user === currentUser));
+    const newReview = {
+      id: Date.now(),
+      foodId,
+      orderId,
+      rating,
+      comment,
+      user: customerName, // ✅ IMPORTANT CHANGE
+      date: new Date().toLocaleDateString(),
+    };
+
+    localStorage.setItem("reviews", JSON.stringify([...allReviews, newReview]));
+
+    setReviews([...allReviews, newReview]); // ✅ instant UI update
+  };
+  const getUserReview = (orderId, foodId) => {
+    return reviews.find((r) => r.orderId === orderId && r.foodId === foodId);
   };
 
   // 🔹 Render stars with half-star support
-  const renderStars = (rating) => {
+  const renderStars = (rating, orderId, foodId) => {
     const stars = [];
+
     for (let i = 1; i <= 5; i++) {
+      let starType;
+
       if (rating >= i) {
-        stars.push(
-          <span key={i} className="text-yellow-300 text-xl sm:text-2xl">
-            ★
-          </span>
-        ); // full star
+        starType = "full";
       } else if (rating >= i - 0.5) {
-        stars.push(
-          <span
-            key={i}
-            className="relative text-xl sm:text-2xl"
-            style={{ display: "inline-block" }}
-          >
+        starType = "half";
+      } else {
+        starType = "empty";
+      }
+
+      stars.push(
+        <span
+          key={i}
+          className="relative cursor-pointer text-lg  sm:text-xl md:text-2xl "
+          onClick={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+
+            let newRating;
+            if (clickX < rect.width / 2) {
+              newRating = i - 0.5;
+            } else {
+              newRating = i;
+            }
+
+            handleRating(orderId, foodId, newRating, "");
+          }}
+        >
+          {/* Empty Star */}
+          <span className="text-white">★</span>
+
+          {/* Full or Half Fill */}
+          {starType !== "empty" && (
             <span
-              className="text-yellow-300 absolute top-0 left-0 overflow-hidden"
-              style={{ width: "50%" }}
+              className="absolute left-0 top-0 text-yellow-300 overflow-hidden"
+              style={{
+                width: starType === "half" ? "50%" : "100%",
+              }}
             >
               ★
             </span>
-            <span className="text-white">★</span>
-          </span>
-        ); // half star
-      } else {
-        stars.push(
-          <span key={i} className="text-white text-xl sm:text-2xl">
-            ★
-          </span>
-        ); // empty star
-      }
+          )}
+        </span>,
+      );
     }
+
     return stars;
   };
 
@@ -136,7 +156,7 @@ export default function OrdersPage() {
           {orders.map((order, idx) => (
             <div
               key={idx}
-              className="flex flex-row justify-between bg-gradient-to-t from-orange-400 to-orange-200 p-4 rounded shadow text-gray-700 hover:shadow-lg transition flex-wrap"
+              className="flex flex-col md:flex-row md:justify-between md:gap-16 lg:gap-24 bg-gradient-to-t from-orange-400 to-orange-200 p-4 rounded shadow text-gray-700 hover:shadow-lg transition"
             >
               {/* Left: Order Items */}
               <div className="flex-1 min-w-[200px]">
@@ -149,20 +169,72 @@ export default function OrdersPage() {
                 {order.items.map((food) => (
                   <div
                     key={food.id}
-                    className="flex justify-between mb-1 text-xs sm:text-sm"
+                    className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 mb-2 text-xs sm:text-sm"
                   >
                     <span>
                       {food.name} x {food.quantity}
                     </span>
-                    <span className="font-semibold px-20">
+                    <span className="font-semibold sm:ml-4">
                       ₹{food.price * food.quantity}
                     </span>
+                    {order.status === "Delivered" && (
+                      <div className="mt-2 w-full sm:w-auto">
+                        <div className="flex items-center gap-1 sm:gap-2">
+                          {renderStars(
+                            getUserReview(order.id, food.id)?.rating || 0,
+                            order.id,
+                            food.id,
+                          )}
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            const existing = getUserReview(order.id, food.id);
+
+                            // ❌ If no rating yet
+                            if (!existing) {
+                              alert("Please rate the item first.");
+                              return;
+                            }
+
+                            // ❌ If comment already exists
+                            if (existing.comment) {
+                              alert(
+                                "You already added a comment for this item.",
+                              );
+                              return;
+                            }
+
+                            const comment = prompt("Write comment (optional)");
+
+                            if (comment && comment.trim() !== "") {
+                              const allReviews =
+                                JSON.parse(localStorage.getItem("reviews")) ||
+                                [];
+
+                              const updated = allReviews.map((r) =>
+                                r.id === existing.id ? { ...r, comment } : r,
+                              );
+
+                              localStorage.setItem(
+                                "reviews",
+                                JSON.stringify(updated),
+                              );
+                              setReviews(updated);
+                            }
+                          }}
+                          className="text-xs text-orange-600 hover:underline"
+                        >
+                          Add Comment
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
 
               {/* Right: Totals, Status & Actions */}
-              <div className="flex flex-col items-end mt-2 md:mt-0 min-w-[180px]">
+              <div className="flex flex-col items-start md:items-end mt-4 md:mt-0 w-full md:w-auto text-xs sm:text-sm">
                 <div className="flex justify-between w-full mb-1 text-xs sm:text-sm">
                   <span>Total Items:</span>
                   <span>{order.totalItems}</span>
@@ -202,32 +274,6 @@ export default function OrdersPage() {
                 </div>
 
                 {/* Ratings Section */}
-                {order.status === "Delivered" && (
-                  <div className="flex flex-col items-start mt-2 w-full sm:w-auto">
-                    <span className="font-medium text-xs sm:text-sm mb-1">
-                      Ratings:
-                    </span>
-
-                    <div
-                      className="flex items-center gap-1 cursor-pointer"
-                      onClick={(e) => {
-                        if (order.rating) return; // prevent multiple ratings
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const clickX = e.clientX - rect.left;
-                        const newRating =
-                          Math.ceil((clickX / rect.width) * 10) / 2; // 0.5 increments
-                        handleRating(order.id, newRating);
-                      }}
-                    >
-                      {renderStars(order.rating || 0)}
-                      {order.rating && (
-                        <span className="text-xs text-gray-600 ml-2">
-                          ({order.rating} / 5)
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           ))}

@@ -23,12 +23,21 @@ export default function Menu() {
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
   const [reviews, setReviews] = useState([]);
+  const [showReviews, setShowReviews] = useState(false);
+const [selectedFoodReviews, setSelectedFoodReviews] = useState([]);
 
 
   useEffect(() => {
-  const storedReviews =
-    JSON.parse(localStorage.getItem("reviews")) || [];
-  setReviews(storedReviews);
+  const loadReviews = () => {
+    const storedReviews =
+      JSON.parse(localStorage.getItem("reviews")) || [];
+    setReviews(storedReviews);
+  };
+
+  loadReviews();
+
+  window.addEventListener("storage", loadReviews);
+  return () => window.removeEventListener("storage", loadReviews);
 }, []);
 
 
@@ -73,12 +82,15 @@ useEffect(() => {
   }, []);
 
   const getAverageRating = (foodId) => {
+  const reviews = JSON.parse(localStorage.getItem("reviews")) || [];
+
   const foodReviews = reviews.filter(
     (r) => r.foodId === foodId
   );
 
-  if (foodReviews.length === 0)
+  if (foodReviews.length === 0) {
     return { avg: 0, count: 0 };
+  }
 
   const total = foodReviews.reduce(
     (sum, r) => sum + r.rating,
@@ -92,24 +104,47 @@ useEffect(() => {
 };
 
 
-const renderStars = (avg) => {
+const renderStars = (rating) => {
   return (
-    <span className="relative inline-block text-yellow-400">
-      {[...Array(5)].map((_, i) => (
-        <span key={i} className="relative inline-block">
-          {/* Filled part of star */}
-          <span
-            className="absolute top-0 left-0 overflow-hidden"
-            style={{ width: `${Math.min(Math.max(avg - i, 0), 1) * 100}%` }}
-          >
-            ★
-          </span>
-          {/* Empty star */}
-          <span className="text-gray-300">★</span>
-        </span>
-      ))}
-    </span>
+    <div className="flex items-center">
+      {[1, 2, 3, 4, 5].map((star) => {
+        if (rating >= star) {
+          return (
+            <span key={star} className="text-yellow-400 text-lg">
+              ★
+            </span>
+          );
+        } else if (rating >= star - 0.5) {
+          return (
+            <span key={star} className="relative text-lg">
+              <span className="absolute text-yellow-400 w-1/2 overflow-hidden">
+                ★
+              </span>
+              <span className="text-gray-300">★</span>
+            </span>
+          );
+        } else {
+          return (
+            <span key={star} className="text-gray-300 text-lg">
+              ★
+            </span>
+          );
+        }
+      })}
+    </div>
   );
+};
+
+const openReviews = (foodId) => {
+  const allReviews =
+    JSON.parse(localStorage.getItem("reviews")) || [];
+
+  const foodReviews = allReviews.filter(
+    (r) => r.foodId === foodId
+  );
+
+  setSelectedFoodReviews(foodReviews);
+  setShowReviews(true);
 };
 
   let filteredFoods =
@@ -251,23 +286,33 @@ filteredFoods = [...filteredFoods].sort((a, b) => {
         </div>
 
             <h3 className="text-lg font-semibold text-gray-800">{food.name}</h3>
-            <div className="flex items-center gap-2 text-sm mt-1">
-  {renderStars(avg)}
+            <p className="text-gray-600 text-sm mt-1">
+  {food.description}
+</p>
+           <div className="flex items-center justify-between text-sm mt-2">
+  <div className="flex items-center gap-2">
+    {renderStars(avg)}
 
-  <span className="text-gray-500">
-    ({count})
-  </span>
-
-  {count > 0 && (
-    <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-semibold">
-      {avg.toFixed(1)}
+    <span className="text-gray-500">
+      ({count})
     </span>
-  )}
+
+    {count > 0 && (
+      <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-semibold">
+        {avg.toFixed(1)}
+      </span>
+    )}
+  </div>
+
+  <button
+    onClick={() => openReviews(food.id)}
+    className="text-orange-600 text-xs hover:underline"
+  >
+    View Reviews
+  </button>
 </div>
 
-
-
-            <p className="text-gray-600 text-sm">{food.description}</p>
+           
             <div className="flex justify-between items-center mt-2">
               <p className="font-bold text-orange-500">₹{food.price}</p>
              
@@ -301,6 +346,47 @@ filteredFoods = [...filteredFoods].sort((a, b) => {
 })}
 
       </div>
+      {showReviews && (
+  <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+    <div className="bg-white p-4 rounded-lg w-96 max-h-[80vh] overflow-y-auto">
+      <h3 className="text-lg font-semibold mb-3">
+        User Reviews
+      </h3>
+
+      {selectedFoodReviews.length === 0 ? (
+        <p className="text-sm text-gray-500">
+          No reviews yet.
+        </p>
+      ) : (
+        selectedFoodReviews.map((review, index) => (
+  <div
+    key={review.id || index}
+    className="border-b py-2"
+  >
+            <p className="text-sm font-medium">
+              {review.user}
+            </p>
+
+            {renderStars(review.rating)}
+
+            {review.comment && (
+              <p className="text-xs text-gray-600">
+                "{review.comment}"
+              </p>
+            )}
+          </div>
+        ))
+      )}
+
+      <button
+        onClick={() => setShowReviews(false)}
+        className="mt-3 bg-orange-500 text-white px-3 py-1 rounded text-sm"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+)}
     </div>
   );
 }
