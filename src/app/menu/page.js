@@ -25,7 +25,7 @@ export default function Menu() {
   const [reviews, setReviews] = useState([]);
   const [showReviews, setShowReviews] = useState(false);
 const [selectedFoodReviews, setSelectedFoodReviews] = useState([]);
-
+const [foods, setFoods] = useState([]);
 
   useEffect(() => {
   const loadReviews = () => {
@@ -41,19 +41,32 @@ const [selectedFoodReviews, setSelectedFoodReviews] = useState([]);
 }, []);
 
 
-const [foods, setFoods] = useState([]);
 useEffect(() => {
   const loadFoods = () => {
+    // Admin-added foods
     const adminFoods = (JSON.parse(localStorage.getItem("foods")) || []).map(f => ({
       ...f,
-      price: Number(f.price), // ensure price is a number
-      category: f.category?.trim() || "Other", // trim spaces
-      id: f.id || Date.now(), // ensure id exists
+      price: Number(f.price),
+      category: f.category?.trim() || "Other",
+      id: f.id || Date.now(),
     }));
-    setFoods([...foodItemsData, ...adminFoods]); // merge default + admin foods
+
+    // Default foods updates
+    const updatedDefaults = JSON.parse(localStorage.getItem("updatedDefaults")) || [];
+
+    // Default foods deletions
+    const deletedFoods = JSON.parse(localStorage.getItem("deletedFoods")) || [];
+
+    const defaultFoods = foodItemsData
+      .filter(f => !deletedFoods.includes(f.id)) // remove deleted
+      .map(f => {
+        const updated = updatedDefaults.find(u => u.id === f.id);
+        return updated || f;
+      });
+
+    setFoods([...defaultFoods, ...adminFoods]);
   };
 
-  // Load foods on page load
   loadFoods();
 
   // Sync if localStorage changes (multi-tab support)
