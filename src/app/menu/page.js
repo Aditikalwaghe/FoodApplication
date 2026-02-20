@@ -26,6 +26,27 @@ export default function Menu() {
   const [showReviews, setShowReviews] = useState(false);
 const [selectedFoodReviews, setSelectedFoodReviews] = useState([]);
 const [foods, setFoods] = useState([]);
+const [wishlist, setWishlist] = useState([]);
+
+// Load wishlist from localStorage
+useEffect(() => {
+  const storedWishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+  setWishlist(storedWishlist);
+}, []);
+
+// Save wishlist to localStorage whenever it changes
+useEffect(() => {
+  localStorage.setItem("wishlist", JSON.stringify(wishlist));
+}, [wishlist]);
+
+// Toggle wishlist
+const toggleWishlist = (foodId) => {
+  setWishlist(prev =>
+    prev.includes(foodId)
+      ? prev.filter(id => id !== foodId)
+      : [...prev, foodId]
+  );
+};
 
   useEffect(() => {
   const loadReviews = () => {
@@ -287,19 +308,33 @@ filteredFoods = [...filteredFoods].sort((a, b) => {
 
           <div
   key={food.id}
-  className="border rounded-lg shadow p-4 flex flex-col justify-between hover:scale-105 transition bg-white"
+  className="border rounded-lg shadow p-4 flex flex-col justify-between hover:scale-105 transition bg-white relative"
 >
+  {/* Food Image */}
+  <div className="w-full rounded mb-2 overflow-hidden relative">
+    <img
+      src={food.img}
+      alt={food.name}
+      className="w-full aspect-[4/3] object-cover transition-transform duration-300 hover:scale-105"
+   />
 
-            <div className="w-full rounded mb-2 overflow-hidden">
-          <img
-            src={food.img}
-            alt={food.name}
-            className="w-full aspect-[4/3] object-cover transition-transform duration-300 hover:scale-105"
-          />
-        </div>
+    
+  </div>
 
-            <h3 className="text-lg font-semibold text-gray-800">{food.name}</h3>
-            <p className="text-gray-600 text-sm mt-1">
+  
+        
+
+<div className="flex items-center justify-between mt-2">
+  <h3 className="text-lg font-semibold text-gray-800">{food.name}</h3>
+  <button
+    onClick={() => toggleWishlist(food.id)}
+    className={`text-2xl transition-colors ${
+      wishlist.includes(food.id) ? "text-red-500" : "text-gray-500"
+    }`}
+  >
+    {wishlist.includes(food.id) ? "❤️" : "♡"}
+  </button>
+</div>            <p className="text-gray-600 text-sm mt-1">
   {food.description}
 </p>
            <div className="flex items-center justify-between text-sm mt-2">

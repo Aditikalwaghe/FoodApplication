@@ -280,6 +280,15 @@ useEffect(() => {
             >
               My Orders
             </button>
+            <button
+  onClick={() => {
+    setIsMenuOpen(false);
+    router.push("/wishlist");
+  }}
+  className="w-full text-center py-2 text-gray-700 hover:text-orange-500 hover:bg-gray-100 transition rounded"
+>
+  Wishlist
+</button>
             {isLoggedIn && (
               <button
                 onClick={handleLogout}
