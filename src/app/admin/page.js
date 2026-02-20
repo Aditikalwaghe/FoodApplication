@@ -10,22 +10,21 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen flex bg-gray-100">
       {/* LEFT SIDEBAR */}
-<div className="w-full sm:w-1/4 bg-white shadow p-4 space-y-4">        <h2 className="text-xl font-bold text-gray-500">Admin Panel</h2>
-
+      <div className="w-full sm:w-1/4 bg-white shadow p-4 space-y-4">
+        {" "}
+        <h2 className="text-xl font-bold text-gray-500">Admin Panel</h2>
         <button
           onClick={() => setActiveTab("add")}
           className="w-full bg-orange-500 text-white py-1 rounded hover:text-orange-500 hover:bg-gray-200 transition"
         >
           Add Food
         </button>
-
         <button
           onClick={() => setActiveTab("list")}
           className="w-full bg-orange-500 text-white py-1 rounded hover:text-orange-500 hover:bg-gray-200 transition"
         >
           Menu List
         </button>
-
         <button
           onClick={() => setActiveTab("orders")}
           className="w-full bg-orange-500 text-white py-1 rounded hover:text-orange-500 hover:bg-gray-200 transition"
@@ -86,7 +85,7 @@ function AddFood() {
     const foods = JSON.parse(localStorage.getItem("foods")) || [];
     localStorage.setItem(
       "foods",
-      JSON.stringify([...foods, { ...food, id: Date.now() }])
+      JSON.stringify([...foods, { ...food, id: Date.now() }]),
     );
 
     alert("Food added successfully");
@@ -171,9 +170,9 @@ function AddFood() {
 function MenuList() {
   const [foods, setFoods] = useState([]);
   const [reviews, setReviews] = useState([]);
-const [editingFood, setEditingFood] = useState(null);
-const [showModal, setShowModal] = useState(false);
-const [toast, setToast] = useState("");
+  const [editingFood, setEditingFood] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [toast, setToast] = useState("");
 
   useEffect(() => {
     const adminFoods = JSON.parse(localStorage.getItem("foods")) || [];
@@ -184,41 +183,43 @@ const [toast, setToast] = useState("");
   }, []);
 
   useEffect(() => {
-  const loadFoodsForTable = () => {
-    // Admin-added foods from localStorage
-    const adminFoods = (JSON.parse(localStorage.getItem("foods")) || []).map(f => ({
-      ...f,
-      price: Number(f.price),
-      category: f.category?.trim() || "Other",
-      id: f.id || Date.now(),
-    }));
+    const loadFoodsForTable = () => {
+      // Admin-added foods from localStorage
+      const adminFoods = (JSON.parse(localStorage.getItem("foods")) || []).map(
+        (f) => ({
+          ...f,
+          price: Number(f.price),
+          category: f.category?.trim() || "Other",
+          id: f.id || Date.now(),
+        }),
+      );
 
-    // Default foods updates
-    const updatedDefaults = JSON.parse(localStorage.getItem("updatedDefaults")) || [];
+      // Default foods updates
+      const updatedDefaults =
+        JSON.parse(localStorage.getItem("updatedDefaults")) || [];
 
-    // Default foods deletions
-    const deletedFoods = JSON.parse(localStorage.getItem("deletedFoods")) || [];
+      // Default foods deletions
+      const deletedFoods =
+        JSON.parse(localStorage.getItem("deletedFoods")) || [];
 
-    // Start from default foods
-    const defaultFoods = foodItemsData
-      .filter(f => !deletedFoods.includes(f.id)) // remove deleted
-      .map(f => {
-        const updated = updatedDefaults.find(u => u.id === f.id);
-        return updated || f;
-      });
+      // Start from default foods
+      const defaultFoods = foodItemsData
+        .filter((f) => !deletedFoods.includes(f.id)) // remove deleted
+        .map((f) => {
+          const updated = updatedDefaults.find((u) => u.id === f.id);
+          return updated || f;
+        });
 
-    // Combine default + admin foods
-    setFoods([...defaultFoods, ...adminFoods]);
-  };
+      // Combine default + admin foods
+      setFoods([...defaultFoods, ...adminFoods]);
+    };
 
-  loadFoodsForTable();
+    loadFoodsForTable();
 
-  // Sync if localStorage changes (multi-tab support)
-  window.addEventListener("storage", loadFoodsForTable);
-  return () => window.removeEventListener("storage", loadFoodsForTable);
-}, []);
-
-  
+    // Sync if localStorage changes (multi-tab support)
+    window.addEventListener("storage", loadFoodsForTable);
+    return () => window.removeEventListener("storage", loadFoodsForTable);
+  }, []);
 
   const getFoodStats = (foodId) => {
     const foodReviews = reviews.filter((r) => r.foodId === foodId);
@@ -292,71 +293,89 @@ const [toast, setToast] = useState("");
   const topRatedFoodId = getTopRatedFoodId();
   const lowestRatedFoodId = getLowestRatedFoodId();
   const handleUpdate = () => {
-  const adminFoods = JSON.parse(localStorage.getItem("foods")) || [];
-
-  // Check if editing default food
-  const isDefaultFood = foodItemsData.find(f => f.id === editingFood.id);
-
-  if (isDefaultFood) {
-    // Save default food in localStorage as updated
-    const updatedDefaults = JSON.parse(localStorage.getItem("updatedDefaults")) || [];
-    const filtered = updatedDefaults.filter(f => f.id !== editingFood.id);
-
-    localStorage.setItem(
-      "updatedDefaults",
-      JSON.stringify([...filtered, editingFood])
-    );
-
-    // Update state: show updated default foods + admin foods
-    const updatedDefaultsFromStorage = JSON.parse(localStorage.getItem("updatedDefaults")) || [];
-    setFoods([...foodItemsData.map(f => {
-      const updated = updatedDefaultsFromStorage.find(u => u.id === f.id);
-      return updated || f;
-    }).filter(f => !(JSON.parse(localStorage.getItem("deletedFoods")) || []).includes(f.id)), ...adminFoods]);
-
-  } else {
-    // Normal admin food update
-    const updatedAdminFoods = adminFoods.map(f =>
-      f.id === editingFood.id ? editingFood : f
-    );
-    localStorage.setItem("foods", JSON.stringify(updatedAdminFoods));
-    setFoods([...foodItemsData, ...updatedAdminFoods]);
-  }
-
-  setShowModal(false);
-  setToast("Food updated successfully ✅");
-
-  setTimeout(() => setToast(""), 3000);
-};
-const removeFood = (foodId) => {
-  if (confirm("Are you sure you want to delete this food item?")) {
-    // Get admin foods from localStorage
     const adminFoods = JSON.parse(localStorage.getItem("foods")) || [];
 
-    // Check if the food is default
-    const isDefault = foodItemsData.find((f) => f.id === foodId);
+    // Check if editing default food
+    const isDefaultFood = foodItemsData.find((f) => f.id === editingFood.id);
 
-    let updatedFoods;
-    if (isDefault) {
-      // To "delete" default food, we save it in localStorage as deleted
-      const deletedFoods = JSON.parse(localStorage.getItem("deletedFoods")) || [];
+    if (isDefaultFood) {
+      // Save default food in localStorage as updated
+      const updatedDefaults =
+        JSON.parse(localStorage.getItem("updatedDefaults")) || [];
+      const filtered = updatedDefaults.filter((f) => f.id !== editingFood.id);
+
       localStorage.setItem(
-        "deletedFoods",
-        JSON.stringify([...deletedFoods, foodId])
+        "updatedDefaults",
+        JSON.stringify([...filtered, editingFood]),
       );
 
-      updatedFoods = adminFoods; // default food is filtered later in state
+      // Update state: show updated default foods + admin foods
+      const updatedDefaultsFromStorage =
+        JSON.parse(localStorage.getItem("updatedDefaults")) || [];
+      setFoods([
+        ...foodItemsData
+          .map((f) => {
+            const updated = updatedDefaultsFromStorage.find(
+              (u) => u.id === f.id,
+            );
+            return updated || f;
+          })
+          .filter(
+            (f) =>
+              !(
+                JSON.parse(localStorage.getItem("deletedFoods")) || []
+              ).includes(f.id),
+          ),
+        ...adminFoods,
+      ]);
     } else {
-      // Remove admin food normally
-      updatedFoods = adminFoods.filter((f) => f.id !== foodId);
-      localStorage.setItem("foods", JSON.stringify(updatedFoods));
+      // Normal admin food update
+      const updatedAdminFoods = adminFoods.map((f) =>
+        f.id === editingFood.id ? editingFood : f,
+      );
+      localStorage.setItem("foods", JSON.stringify(updatedAdminFoods));
+      setFoods([...foodItemsData, ...updatedAdminFoods]);
     }
 
-    // Update state, filter out deleted default foods
-    const deletedFoods = JSON.parse(localStorage.getItem("deletedFoods")) || [];
-    setFoods([...foodItemsData.filter(f => !deletedFoods.includes(f.id)), ...updatedFoods]);
-  }
-};
+    setShowModal(false);
+    setToast("Food updated successfully ✅");
+
+    setTimeout(() => setToast(""), 3000);
+  };
+  const removeFood = (foodId) => {
+    if (confirm("Are you sure you want to delete this food item?")) {
+      // Get admin foods from localStorage
+      const adminFoods = JSON.parse(localStorage.getItem("foods")) || [];
+
+      // Check if the food is default
+      const isDefault = foodItemsData.find((f) => f.id === foodId);
+
+      let updatedFoods;
+      if (isDefault) {
+        // To "delete" default food, we save it in localStorage as deleted
+        const deletedFoods =
+          JSON.parse(localStorage.getItem("deletedFoods")) || [];
+        localStorage.setItem(
+          "deletedFoods",
+          JSON.stringify([...deletedFoods, foodId]),
+        );
+
+        updatedFoods = adminFoods; // default food is filtered later in state
+      } else {
+        // Remove admin food normally
+        updatedFoods = adminFoods.filter((f) => f.id !== foodId);
+        localStorage.setItem("foods", JSON.stringify(updatedFoods));
+      }
+
+      // Update state, filter out deleted default foods
+      const deletedFoods =
+        JSON.parse(localStorage.getItem("deletedFoods")) || [];
+      setFoods([
+        ...foodItemsData.filter((f) => !deletedFoods.includes(f.id)),
+        ...updatedFoods,
+      ]);
+    }
+  };
 
   return (
     <div className="bg-white p-4 rounded shadow ">
@@ -365,10 +384,10 @@ const removeFood = (foodId) => {
       </h2>
       <div className="overflow-x-auto">
         {toast && (
-  <div className="fixed top-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50">
-    {toast}
-  </div>
-)}
+          <div className="fixed top-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50">
+            {toast}
+          </div>
+        )}
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b bg-gray-100 border-gray-500 text-left text-orange-500">
@@ -429,129 +448,133 @@ const removeFood = (foodId) => {
                   })()}
                 </td>
                 <td className="p-2 text-center space-x-2">
-  <button
-    onClick={() => {
-      setEditingFood(item);
-      setShowModal(true);
-    }}
-    className="text-blue-500 text-sm hover:underline"
-  >
-    Edit
-  </button>
+                  <button
+                    onClick={() => {
+                      setEditingFood(item);
+                      setShowModal(true);
+                    }}
+                    className="text-blue-500 text-sm hover:underline"
+                  >
+                    Edit
+                  </button>
 
-  <button
-    onClick={() => removeFood(item.id)}
-    className="text-red-500 font-bold text-lg hover:text-red-700"
-  >
-    &times;
-  </button>
-</td>
+                  <button
+                    onClick={() => removeFood(item.id)}
+                    className="text-red-500 font-bold text-lg hover:text-red-600 hover:scale-140 transition duration-200"
+                  >
+                    &times;
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
 
         {/* EDIT MODAL */}
-{showModal && editingFood && (
-  <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-    <div className="bg-white p-6 rounded-lg w-96 space-y-3 relative">
+        {showModal && editingFood && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+            <div className="bg-white p-6 rounded-lg w-96 space-y-3 relative">
+              <h3 className="text-lg font-semibold text-gray-700">Edit Food</h3>
 
-      <h3 className="text-lg font-semibold text-gray-700">Edit Food</h3>
+              {/* Name */}
+              <div className="flex flex-col">
+                <label className="text-gray-600 text-sm mb-1">Name</label>
+                <input
+                  className="border p-2 w-full"
+                  value={editingFood.name}
+                  onChange={(e) =>
+                    setEditingFood({ ...editingFood, name: e.target.value })
+                  }
+                />
+              </div>
 
-      {/* Name */}
-      <div className="flex flex-col">
-        <label className="text-gray-600 text-sm mb-1">Name</label>
-        <input
-          className="border p-2 w-full"
-          value={editingFood.name}
-          onChange={(e) =>
-            setEditingFood({ ...editingFood, name: e.target.value })
-          }
-        />
-      </div>
+              {/* Category */}
+              <div className="flex flex-col">
+                <label className="text-gray-600 text-sm mb-1">Category</label>
+                <input
+                  className="border p-2 w-full"
+                  value={editingFood.category}
+                  onChange={(e) =>
+                    setEditingFood({ ...editingFood, category: e.target.value })
+                  }
+                />
+              </div>
 
-      {/* Category */}
-      <div className="flex flex-col">
-        <label className="text-gray-600 text-sm mb-1">Category</label>
-        <input
-          className="border p-2 w-full"
-          value={editingFood.category}
-          onChange={(e) =>
-            setEditingFood({ ...editingFood, category: e.target.value })
-          }
-        />
-      </div>
+              {/* Price */}
+              <div className="flex flex-col">
+                <label className="text-gray-600 text-sm mb-1">Price</label>
+                <input
+                  className="border p-2 w-full"
+                  value={editingFood.price}
+                  onChange={(e) =>
+                    setEditingFood({ ...editingFood, price: e.target.value })
+                  }
+                />
+              </div>
 
-      {/* Price */}
-      <div className="flex flex-col">
-        <label className="text-gray-600 text-sm mb-1">Price</label>
-        <input
-          className="border p-2 w-full"
-          value={editingFood.price}
-          onChange={(e) =>
-            setEditingFood({ ...editingFood, price: e.target.value })
-          }
-        />
-      </div>
+              {/* Image Upload */}
+              <div className="flex flex-col">
+                <label className="text-gray-600 text-sm mb-1">Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = () => {
+                        setEditingFood({ ...editingFood, img: reader.result });
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+                {/* Image Preview */}
+                {editingFood.img && (
+                  <img
+                    src={editingFood.img}
+                    alt="Preview"
+                    className="w-full h-32 object-cover rounded mt-2"
+                  />
+                )}
+              </div>
 
-      {/* Image Upload */}
-      <div className="flex flex-col">
-        <label className="text-gray-600 text-sm mb-1">Image</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            const file = e.target.files[0];
-            if (file) {
-              const reader = new FileReader();
-              reader.onload = () => {
-                setEditingFood({ ...editingFood, img: reader.result });
-              };
-              reader.readAsDataURL(file);
-            }
-          }}
-        />
-        {/* Image Preview */}
-        {editingFood.img && (
-          <img
-            src={editingFood.img}
-            alt="Preview"
-            className="w-full h-32 object-cover rounded mt-2"
-          />
+              {/* Description */}
+              <div className="flex flex-col">
+                <label className="text-gray-600 text-sm mb-1">
+                  Description
+                </label>
+                <textarea
+                  className="border p-2 w-full"
+                  value={editingFood.description}
+                  onChange={(e) =>
+                    setEditingFood({
+                      ...editingFood,
+                      description: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-between mt-3">
+                <button
+                  onClick={handleUpdate}
+                  className="bg-green-500 text-white px-4 py-2 rounded"
+                >
+                  Update
+                </button>
+
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="bg-gray-400 text-white px-4 py-2 rounded"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
         )}
-      </div>
-
-      {/* Description */}
-      <div className="flex flex-col">
-        <label className="text-gray-600 text-sm mb-1">Description</label>
-        <textarea
-          className="border p-2 w-full"
-          value={editingFood.description}
-          onChange={(e) =>
-            setEditingFood({ ...editingFood, description: e.target.value })
-          }
-        />
-      </div>
-
-      {/* Buttons */}
-      <div className="flex justify-between mt-3">
-        <button
-          onClick={handleUpdate}
-          className="bg-green-500 text-white px-4 py-2 rounded"
-        >
-          Update
-        </button>
-
-        <button
-          onClick={() => setShowModal(false)}
-          className="bg-gray-400 text-white px-4 py-2 rounded"
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  </div>
-)}
       </div>
     </div>
   );
@@ -653,44 +676,44 @@ function Orders() {
                   <p className="text-xs text-gray-500">Date: {order.date}</p>
                 </div>
                 {/* Divider */}
-<hr className="my-2 border-gray-200" />
+                <hr className="my-2 border-gray-200" />
 
-{/* Foods Like ID & Date Style */}
-<div className="flex flex-col gap-2">
-  {order.items.map((food) => {
-    const foodReviews = getFoodReviews(order.id, food.id);
-    const review = foodReviews[0];
+                {/* Foods Like ID & Date Style */}
+                <div className="flex flex-col gap-2">
+                  {order.items.map((food) => {
+                    const foodReviews = getFoodReviews(order.id, food.id);
+                    const review = foodReviews[0];
 
-    return (
-      <div
-        key={food.id}
-className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 text-sm"      >
-        {/* Left Side - Food */}
-        <p className="text-gray-600">
-          {food.name} x {food.quantity}
-        </p>
+                    return (
+                      <div
+                        key={food.id}
+                        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 text-sm"
+                      >
+                        {/* Left Side - Food */}
+                        <p className="text-gray-600">
+                          {food.name} x {food.quantity}
+                        </p>
 
-        {/* Right Side - Rating */}
-        {review ? (
-          <div className="flex items-center gap-1">
-            <div className="flex text-xs">
-              {renderStars(review.rating)}
-            </div>
-            <span className="text-xs text-gray-500">
-              {review.rating}/5
-            </span>
-          </div>
-        ) : (
-          <span className="text-xs text-gray-400">
-            Not rated
-          </span>
-        )}
-      </div>
-    );
-  })}
-</div>
+                        {/* Right Side - Rating */}
+                        {review ? (
+                          <div className="flex items-center gap-1">
+                            <div className="flex text-xs">
+                              {renderStars(review.rating)}
+                            </div>
+                            <span className="text-xs text-gray-500">
+                              {review.rating}/5
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-400">
+                            Not rated
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
 
-                
                 {/* Total */}
                 <div className="min-w-[120px]">
                   <p className="font-semibold text-gray-700 text-sm">

@@ -10,20 +10,17 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
-
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { cartCount } = useCart();
   const [isSignupDropdownOpen, setIsSignupDropdownOpen] = useState(false);
-const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-useEffect(() => {
-  const user = localStorage.getItem("isLoggedIn");
-  const admin = localStorage.getItem("isAdmin");
+  useEffect(() => {
+    const user = localStorage.getItem("isLoggedIn");
+    const admin = localStorage.getItem("isAdmin");
 
-  setIsLoggedIn(user === "true" || admin === "true");
-}, [pathname]);
-
-
+    setIsLoggedIn(user === "true" || admin === "true");
+  }, [pathname]);
 
   const links = [
     { name: "Home", href: "/" },
@@ -33,15 +30,18 @@ useEffect(() => {
   ];
   const ordersLink = { name: "My Orders", href: "/orders" };
 
- const handleLogout = () => {
-  localStorage.removeItem("isLoggedIn");
-  localStorage.removeItem("currentUser");
- localStorage.removeItem("isAdmin");
-  setIsLoggedIn(false);
-  router.replace("/");
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("isAdmin");
 
-};
+    setIsLoggedIn(false);
 
+    // ✅ VERY IMPORTANT: Trigger cart reload instantly
+    window.dispatchEvent(new Event("storage"));
+
+    router.replace("/");
+  };
 
   return (
     <nav className="bg-white  sticky top-0  z-50 ">
@@ -151,46 +151,46 @@ useEffect(() => {
 
           {/* Sign Up with dropdown */}
           {!isLoggedIn && (
-          <div className="relative">
-            <button
-              onClick={() => setIsSignupDropdownOpen(!isSignupDropdownOpen)}
-              className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors duration-300 flex-shrink-0 min-w-[80px]"
-            >
-              Sign Up
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setIsSignupDropdownOpen(!isSignupDropdownOpen)}
+                className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors duration-300 flex-shrink-0 min-w-[80px]"
+              >
+                Sign Up
+              </button>
 
-            {isSignupDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-md overflow-hidden z-50">
-                <button
-                  onClick={() => {
-                    setIsSignupDropdownOpen(false);
-                  }}
-                  className=" w-full text-right px-3  text-gray-400 hover:text-gray-700"
-                >
-                  ✖
-                </button>
-                <button
-                  onClick={() => {
-                    setIsSignupDropdownOpen(false);
-                    router.push("/signup"); // normal user signup
-                  }}
-                  className="w-full text-center py-2 text-gray-700 hover:text-orange-500 hover:bg-gray-100 transition rounded"
-                >
-                  User
-                </button>
+              {isSignupDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-md overflow-hidden z-50">
+                  <button
+                    onClick={() => {
+                      setIsSignupDropdownOpen(false);
+                    }}
+                    className=" w-full text-right px-3  text-gray-400 hover:text-gray-700"
+                  >
+                    ✖
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsSignupDropdownOpen(false);
+                      router.push("/signup"); // normal user signup
+                    }}
+                    className="w-full text-center py-2 text-gray-700 hover:text-orange-500 hover:bg-gray-100 transition rounded"
+                  >
+                    User
+                  </button>
 
-                <button
-                  onClick={() => {
-                    setIsSignupDropdownOpen(false);
-                    router.push("/admin-login"); // admin login
-                  }}
-                  className="w-full text-center py-2 text-gray-700 hover:text-orange-500 hover:bg-gray-100 transition rounded"
-                >
-                  Admin
-                </button>
-              </div>
-            )}
-          </div>
+                  <button
+                    onClick={() => {
+                      setIsSignupDropdownOpen(false);
+                      router.push("/admin-login"); // admin login
+                    }}
+                    className="w-full text-center py-2 text-gray-700 hover:text-orange-500 hover:bg-gray-100 transition rounded"
+                  >
+                    Admin
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
@@ -281,14 +281,14 @@ useEffect(() => {
               My Orders
             </button>
             <button
-  onClick={() => {
-    setIsMenuOpen(false);
-    router.push("/wishlist");
-  }}
-  className="w-full text-center py-2 text-gray-700 hover:text-orange-500 hover:bg-gray-100 transition rounded"
->
-  Wishlist
-</button>
+              onClick={() => {
+                setIsMenuOpen(false);
+                router.push("/wishlist");
+              }}
+              className="w-full text-center py-2 text-gray-700 hover:text-orange-500 hover:bg-gray-100 transition rounded"
+            >
+              Wishlist
+            </button>
             {isLoggedIn && (
               <button
                 onClick={handleLogout}
