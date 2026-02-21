@@ -14,6 +14,7 @@ export default function Navbar() {
   const { cartCount } = useCart();
   const [isSignupDropdownOpen, setIsSignupDropdownOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const user = localStorage.getItem("isLoggedIn");
@@ -69,10 +70,21 @@ window.dispatchEvent(new Event("userChanged"));
         <div className="flex items-center space-x-4 px-3 ">
           {/* Search bar */}
           <input
-            type="text"
-            placeholder="Search..."
-            className="px-1 py-1 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 text-black"
-          />
+  type="text"
+  placeholder="Search food..."
+  value={searchQuery}
+  onChange={(e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+
+    if (value.trim() === "") {
+      router.push("/menu");
+    } else {
+      router.push(`/menu?search=${value}`);
+    }
+  }}
+  className="px-2 py-1 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 text-black"
+/>
 
           {links.map((link) =>
             link.name === "Home" ? (

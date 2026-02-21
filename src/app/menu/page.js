@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
 import { foodItemsData } from "@/data/foods";
 import toast from "react-hot-toast";
+import { useSearchParams } from "next/navigation";
 
 const categoriesData = [
   { name: "All", img: "/categories/all.png" },
@@ -24,6 +25,31 @@ export default function Menu() {
   const [selectedFoodReviews, setSelectedFoodReviews] = useState([]);
   const [foods, setFoods] = useState([]);
   const [wishlist, setWishlist] = useState([]);
+  const searchParams = useSearchParams();
+const searchQuery = searchParams.get("search") || "";
+
+const [sortOption, setSortOption] = useState("rating");
+const [showSort, setShowSort] = useState(false);
+const sortRef = useRef(null);
+useEffect(() => {
+  function handleClickOutside(event) {
+    if (sortRef.current && !sortRef.current.contains(event.target)) {
+      setShowSort(false);
+    }
+  }
+
+  document.addEventListener("mousedown", handleClickOutside);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
+useEffect(() => {
+  if (!searchQuery) {
+    setSortOption("rating"); // reset to default
+  }
+}, [searchQuery]);
+
 
   // ✅ Protect Add To Cart (Login Required)
   const handleAddToCart = (id) => {
@@ -205,19 +231,34 @@ export default function Menu() {
     setShowReviews(true);
   };
 
-  let filteredFoods =
-    selectedCategory === "All"
-      ? foods
-      : foods.filter(
-          (food) =>
-            food.category.toLowerCase() === selectedCategory.toLowerCase(),
-        );
+ let filteredFoods = foods.filter((food) => {
+  const matchesCategory =
+    selectedCategory === "All" ||
+    food.category.toLowerCase() === selectedCategory.toLowerCase();
+
+  const matchesSearch = food.name
+    .toLowerCase()
+    .includes(searchQuery.toLowerCase());
+
+  return matchesCategory && matchesSearch;
+});
 
   // 🔥 Sort by highest average rating
-  filteredFoods = [...filteredFoods].sort((a, b) => {
-    return getAverageRating(b.id).avg - getAverageRating(a.id).avg;
-  });
+  filteredFoods = [...filteredFoods];
 
+if (sortOption === "rating") {
+  filteredFoods.sort(
+    (a, b) => getAverageRating(b.id).avg - getAverageRating(a.id).avg
+  );
+}
+
+if (sortOption === "priceLow") {
+  filteredFoods.sort((a, b) => a.price - b.price);
+}
+
+if (sortOption === "priceHigh") {
+  filteredFoods.sort((a, b) => b.price - a.price);
+}
   return (
     <div
       className="min-h-screen p-6 md:p-8"
@@ -310,6 +351,80 @@ export default function Menu() {
         </div>
       </div>
 
+<div className="flex items-center mb-5">
+
+  {/* Left Section */}
+  <div className="flex-1">
+    {searchQuery && (
+      <p className="text-sm text-gray-500">
+        Showing results for:{" "}
+        <span className="font-medium text-orange-500">
+          {searchQuery}
+        </span>
+      </p>
+    )}
+  </div>
+
+  {/* Right Section (Sort Button Always Right) */}
+  <div ref={sortRef} className="relative">
+    <button
+      onClick={() => setShowSort(!showSort)}
+      className="bg-orange-500 hover:bg-orange-600 text-sm px-4 py-2 rounded-lg  hover:scale-110 transition duration-200 text-white" 
+    >
+      Sort
+    </button>
+
+    {showSort && (
+      <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-xl z-50 p-3">
+        <div className="flex flex-col gap-2">
+
+          <button
+            onClick={() => {
+              setSortOption("rating");
+              setShowSort(false);
+            }}
+            className={`w-full text-left text-gray-500 px-4 py-2 rounded-lg border text-sm transition ${
+              sortOption === "rating"
+                ? "bg-orange-500 text-white border-orange-500"
+                : "hover:bg-gray-100 border-gray-200"
+            }`}
+          >
+            ⭐ Rating
+          </button>
+
+          <button
+            onClick={() => {
+              setSortOption("priceLow");
+              setShowSort(false);
+            }}
+            className={`w-full text-left text-gray-500 px-4 py-2 rounded-lg border text-sm transition ${
+              sortOption === "priceLow"
+                ? "bg-orange-500 text-white border-orange-500"
+                : "hover:bg-gray-100 border-gray-200"
+            }`}
+          >
+            💰 Price: Low → High
+          </button>
+
+          <button
+            onClick={() => {
+              setSortOption("priceHigh");
+              setShowSort(false);
+            }}
+            className={`w-full text-left text-gray-500 px-4 py-2 rounded-lg border text-sm transition ${
+              sortOption === "priceHigh"
+                ? "bg-orange-500 text-white border-orange-500"
+                : "hover:bg-gray-100 border-gray-200"
+            }`}
+          >
+            💰 Price: High → Low
+          </button>
+
+        </div>
+      </div>
+    )}
+  </div>
+</div>
       {/* Food Items */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
         {filteredFoods.map((food) => {
