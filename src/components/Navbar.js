@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { usePathname } from "next/navigation";
@@ -15,6 +15,28 @@ export default function Navbar() {
   const [isSignupDropdownOpen, setIsSignupDropdownOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const menuRef = useRef(null);
+  const signupRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      // Close hamburger menu
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+
+      // Close signup dropdown
+      if (signupRef.current && !signupRef.current.contains(event.target)) {
+        setIsSignupDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     const user = localStorage.getItem("isLoggedIn");
@@ -39,7 +61,7 @@ export default function Navbar() {
     setIsLoggedIn(false);
 
     // ✅ VERY IMPORTANT: Trigger cart reload instantly
-window.dispatchEvent(new Event("userChanged"));
+    window.dispatchEvent(new Event("userChanged"));
     router.replace("/");
   };
 
@@ -70,21 +92,21 @@ window.dispatchEvent(new Event("userChanged"));
         <div className="flex items-center space-x-4 px-3 ">
           {/* Search bar */}
           <input
-  type="text"
-  placeholder="Search food..."
-  value={searchQuery}
-  onChange={(e) => {
-    const value = e.target.value;
-    setSearchQuery(value);
+            type="text"
+            placeholder="Search food..."
+            value={searchQuery}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSearchQuery(value);
 
-    if (value.trim() === "") {
-      router.push("/menu");
-    } else {
-      router.push(`/menu?search=${value}`);
-    }
-  }}
-  className="px-2 py-1 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 text-black"
-/>
+              if (value.trim() === "") {
+                router.push("/menu");
+              } else {
+                router.push(`/menu?search=${value}`);
+              }
+            }}
+            className="px-2 py-1 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 text-black"
+          />
 
           {links.map((link) =>
             link.name === "Home" ? (
@@ -162,7 +184,7 @@ window.dispatchEvent(new Event("userChanged"));
 
           {/* Sign Up with dropdown */}
           {!isLoggedIn && (
-            <div className="relative">
+            <div ref={signupRef} className="relative">
               <button
                 onClick={() => setIsSignupDropdownOpen(!isSignupDropdownOpen)}
                 className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors duration-300 flex-shrink-0 min-w-[80px]"
@@ -171,34 +193,28 @@ window.dispatchEvent(new Event("userChanged"));
               </button>
 
               {isSignupDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-md overflow-hidden z-50">
-                  <button
-                    onClick={() => {
-                      setIsSignupDropdownOpen(false);
-                    }}
-                    className=" w-full text-right px-3  text-gray-400 hover:text-gray-700"
-                  >
-                    ✖
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsSignupDropdownOpen(false);
-                      router.push("/signup"); // normal user signup
-                    }}
-                    className="w-full text-center py-2 text-gray-700 hover:text-orange-500 hover:bg-gray-100 transition rounded"
-                  >
-                    User
-                  </button>
+                <div className="absolute right-0 mt-2 w-38 bg-white border border-gray-200 rounded-xl shadow-xl z-50 p-3">
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={() => {
+                        setIsSignupDropdownOpen(false);
+                        router.push("/signup");
+                      }}
+                      className="w-full text-left px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 transition hover:bg-orange-500 hover:text-white hover:border-orange-500"
+                    >
+                      👤 User
+                    </button>
 
-                  <button
-                    onClick={() => {
-                      setIsSignupDropdownOpen(false);
-                      router.push("/admin-login"); // admin login
-                    }}
-                    className="w-full text-center py-2 text-gray-700 hover:text-orange-500 hover:bg-gray-100 transition rounded"
-                  >
-                    Admin
-                  </button>
+                    <button
+                      onClick={() => {
+                        setIsSignupDropdownOpen(false);
+                        router.push("/admin-login");
+                      }}
+                      className="w-full text-left px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 transition hover:bg-orange-500 hover:text-white hover:border-orange-500"
+                    >
+                      🛠 Admin
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -207,7 +223,10 @@ window.dispatchEvent(new Event("userChanged"));
 
         {/* Mobile-like dropdown (optional) triggered by hamburger */}
         {isMenuOpen && (
-          <div className="absolute top-full left-0 w-56 bg-white shadow-md border rounded-md mt-2 p-2 flex flex-col space-y-2 z-50">
+          <div
+            ref={menuRef}
+            className="absolute top-full left-0 w-56 bg-white shadow-md border rounded-md mt-2 p-2 flex flex-col space-y-2 z-50"
+          >
             {links.map((link) => {
               // HOME
               if (link.name === "Home") {
