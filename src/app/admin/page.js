@@ -647,6 +647,7 @@ function MenuList() {
 function Orders() {
   const [orders, setOrders] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [statusFilter, setStatusFilter] = useState("All");
   // Load all orders from localStorage
   useEffect(() => {
     const storedOrders = JSON.parse(localStorage.getItem("orders")) || [];
@@ -706,18 +707,64 @@ function Orders() {
     }
   };
 
+  const filteredOrders =
+  statusFilter === "All"
+    ? orders
+    : orders.filter((order) => {
+        if (statusFilter === "Pending")
+          return order.status === "Pending";
+
+        if (statusFilter === "Delivered")
+          return order.status === "Delivered";
+
+        if (statusFilter === "Confirmed")
+          return order.status === "Confirmed";
+
+        if (statusFilter === "Preparing")
+          return order.status === "Preparing";
+
+        if (statusFilter === "Delivered")
+          return order.status === "Delivered";
+
+        if (statusFilter === "Out for Delivery")
+          return order.status === "Out for Delivery";
+
+        if (statusFilter === "Cancelled")
+          return (
+            order.status === "Cancelled" ||
+            order.status === "Cancelled by User"
+          );
+
+        return true;
+      });
+
   return (
     <div className="bg-white p-4 rounded shadow space-y-6">
       <h2 className="text-2xl font-bold mb-4 text-gray-500 text-center">
         Orders
       </h2>
 
-      {orders.length === 0 ? (
-        <p className="text-gray-400 text-center">No orders placed yet.</p>
+{/* Admin Order Filter */}
+<div className="flex justify-end mb-4">
+  <select
+    value={statusFilter}
+    onChange={(e) => setStatusFilter(e.target.value)}
+    className="border px-3 py-2 rounded-lg text-sm bg-gray- shadow-sm text-gray-500"
+  >
+    <option value="All" className="text-gray-500">All Orders</option>
+    <option value="Pending" className="text-gray-500">Pending</option>
+    <option value="Confirmed" className="text-gray-500">Confirmed</option>
+    <option value="Preparing" className="text-gray-500">Preparing</option>
+    <option value="Out for Delivery" className="text-gray-500">Out for Delivery</option>
+    <option value="Delivered" className="text-gray-500">Delivered</option>
+    <option value="Cancelled" className="text-gray-500">Cancelled</option>
+  </select>
+</div>
+
+{filteredOrders.length === 0 ? (        <p className="text-gray-400 text-center">No orders placed yet.</p>
       ) : (
         <div className="flex flex-col gap-4">
-          {orders.map((order, idx) => (
-            <div
+{filteredOrders.map((order, idx) => (            <div
               key={order.id}
               className="relative p-4 border rounded-lg shadow hover:shadow-lg transition flex flex-col gap-3 bg-gradient-to-r from-orange-200 to-orange-300"
             >
