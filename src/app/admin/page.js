@@ -51,6 +51,10 @@ function AddFood() {
     description: "",
     price: "",
     img: "",
+      isVeg: true,   // default veg
+
+    
+
   });
 
   useEffect(() => {
@@ -97,6 +101,7 @@ function AddFood() {
       price: "",
       img: "",
       description: "",
+      isVeg: true,  
     });
   };
 
@@ -117,6 +122,35 @@ function AddFood() {
         className="border p-2 w-full text-gray-400"
         onChange={(e) => setFood({ ...food, category: e.target.value })}
       />
+
+      {/* Veg / Non-Veg Selection */}
+<div className="flex gap-4 mt-2 border p-2 border-gray-400 ">
+  <label className="flex items-center gap-2 cursor-pointer text-gray-600">
+    <input
+      type="radio"
+      name="vegType"
+      checked={food.isVeg === true}
+      onChange={() => setFood({ ...food, isVeg: true })}
+    />
+    <span className="flex items-center gap-1 text-green-700">
+      Veg
+      
+    </span>
+  </label>
+
+  <label className="flex items-center gap-1 cursor-pointer text-gray-600">
+    <input
+      type="radio"
+      name="vegType"
+      checked={food.isVeg === false}
+      onChange={() => setFood({ ...food, isVeg: false })}
+    />
+    <span className="flex items-center gap-1 text-red-600">
+         Non-Veg
+   
+    </span>
+  </label>
+</div>
 
       <input
         placeholder="Price"
@@ -451,9 +485,12 @@ function MenuList() {
                 <td className="p-2 text-center space-x-2">
                   <button
                     onClick={() => {
-                      setEditingFood(item);
-                      setShowModal(true);
-                    }}
+  setEditingFood({
+    ...item,
+    isVeg: item.isVeg !== false, // fallback if missing
+  });
+  setShowModal(true);
+}}
                     className="text-blue-500 text-sm hover:underline"
                   >
                     Edit
@@ -500,6 +537,32 @@ function MenuList() {
                   }
                 />
               </div>
+              {/* Veg / Non-Veg Selection */}
+<div className="flex gap-4 mt-2 border p-2 border-gray-300 rounded">
+  <label className="flex items-center gap-2 cursor-pointer text-gray-600">
+    <input
+      type="radio"
+      name="editVegType"
+      checked={editingFood.isVeg !== false}
+      onChange={() =>
+        setEditingFood({ ...editingFood, isVeg: true })
+      }
+    />
+    <span className="text-green-600 font-medium">Veg</span>
+  </label>
+
+  <label className="flex items-center gap-2 cursor-pointer text-gray-600">
+    <input
+      type="radio"
+      name="editVegType"
+      checked={editingFood.isVeg === false}
+      onChange={() =>
+        setEditingFood({ ...editingFood, isVeg: false })
+      }
+    />
+    <span className="text-red-600 font-medium">Non-Veg</span>
+  </label>
+</div>
 
               {/* Price */}
               <div className="flex flex-col">

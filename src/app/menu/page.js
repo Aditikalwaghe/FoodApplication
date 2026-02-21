@@ -30,23 +30,28 @@ const searchQuery = searchParams.get("search") || "";
 
 const [sortOption, setSortOption] = useState("rating");
 const [showSort, setShowSort] = useState(false);
-const sortRef = useRef(null);
+const [showFilter, setShowFilter] = useState(false);
+const [vegFilter, setVegFilter] = useState("all"); 
+const dropdownRef = useRef(null);
 useEffect(() => {
-  function handleClickOutside(event) {
-    if (sortRef.current && !sortRef.current.contains(event.target)) {
+  const handleClickOutside = (event) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
       setShowSort(false);
+      setShowFilter(false);
     }
-  }
+  };
 
   document.addEventListener("mousedown", handleClickOutside);
-
   return () => {
     document.removeEventListener("mousedown", handleClickOutside);
   };
 }, []);
+
+
 useEffect(() => {
   if (!searchQuery) {
-    setSortOption("rating"); // reset to default
+    setSortOption("rating");
+    setVegFilter("all");   // ✅ reset filter also
   }
 }, [searchQuery]);
 
@@ -231,7 +236,7 @@ useEffect(() => {
     setShowReviews(true);
   };
 
- let filteredFoods = foods.filter((food) => {
+let filteredFoods = foods.filter((food) => {
   const matchesCategory =
     selectedCategory === "All" ||
     food.category.toLowerCase() === selectedCategory.toLowerCase();
@@ -240,8 +245,15 @@ useEffect(() => {
     .toLowerCase()
     .includes(searchQuery.toLowerCase());
 
-  return matchesCategory && matchesSearch;
+  const matchesVeg =
+    vegFilter === "all" ||
+    (vegFilter === "veg" && food.isVeg === true) ||
+    (vegFilter === "nonveg" && food.isVeg === false);
+
+  return matchesCategory && matchesSearch && matchesVeg;
 });
+
+
 
   // 🔥 Sort by highest average rating
   filteredFoods = [...filteredFoods];
@@ -351,10 +363,76 @@ if (sortOption === "priceHigh") {
         </div>
       </div>
 
-<div className="flex items-center mb-5">
+<div ref={dropdownRef} className="flex items-center justify-between mb-5">
 
-  {/* Left Section */}
-  <div className="flex-1">
+  {/* LEFT → Filter */}
+  <div className="relative">
+    <button
+      onClick={() => {
+        setShowFilter(!showFilter);
+        setShowSort(false);
+      }}
+      className="bg-orange-500 hover:bg-orange-600 text-sm px-4 py-2 rounded-lg hover:scale-110 transition duration-200 text-white"
+    >
+      Filter
+    </button>
+
+    {showFilter && (
+      <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-50 p-3">
+        <div className="flex flex-col gap-2">
+
+          <button
+            onClick={() => {
+              setVegFilter("all");
+              setShowFilter(false);
+            }}
+            className={`w-full text-left px-4 py-2 rounded-lg border text-sm transition ${
+              vegFilter === "all"
+                ? "bg-orange-500 text-white border-orange-500"
+                : "hover:bg-gray-100 border-gray-200 text-gray-600"
+            }`}
+          >
+            🍽 All
+          </button>
+
+          <button
+            onClick={() => {
+              setVegFilter("veg");
+              setShowFilter(false);
+            }}
+            className={`w-full flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition ${
+              vegFilter === "veg"
+                ? "bg-orange-500 text-white border-orange-500"
+                : "hover:bg-gray-100 border-gray-200 text-gray-600"
+            }`}
+          >
+            <span className="w-3 h-3 bg-green-600 rounded-full"></span>
+            Veg
+          </button>
+
+          <button
+            onClick={() => {
+              setVegFilter("nonveg");
+              setShowFilter(false);
+            }}
+            className={`w-full flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition ${
+              vegFilter === "nonveg"
+                ? "bg-orange-500 text-white border-orange-500"
+                : "hover:bg-gray-100 border-gray-200 text-gray-600"
+            }`}
+          >
+            <span className="w-3 h-3 bg-red-600 rounded-full"></span>
+            Non-Veg
+          </button>
+
+        </div>
+      </div>
+    )}
+  </div>
+
+
+  {/* CENTER → Showing Results */}
+  <div className="flex-1 text-center">
     {searchQuery && (
       <p className="text-sm text-gray-500">
         Showing results for:{" "}
@@ -365,11 +443,15 @@ if (sortOption === "priceHigh") {
     )}
   </div>
 
-  {/* Right Section (Sort Button Always Right) */}
-  <div ref={sortRef} className="relative">
+
+  {/* RIGHT → Sort */}
+  <div className="relative">
     <button
-      onClick={() => setShowSort(!showSort)}
-      className="bg-orange-500 hover:bg-orange-600 text-sm px-4 py-2 rounded-lg  hover:scale-110 transition duration-200 text-white" 
+      onClick={() => {
+        setShowSort(!showSort);
+        setShowFilter(false);
+      }}
+      className="bg-orange-500 hover:bg-orange-600 text-sm px-4 py-2 rounded-lg hover:scale-110 transition duration-200 text-white"
     >
       Sort
     </button>
@@ -383,10 +465,10 @@ if (sortOption === "priceHigh") {
               setSortOption("rating");
               setShowSort(false);
             }}
-            className={`w-full text-left text-gray-500 px-4 py-2 rounded-lg border text-sm transition ${
+            className={`w-full text-left px-4 py-2 rounded-lg border text-sm transition ${
               sortOption === "rating"
                 ? "bg-orange-500 text-white border-orange-500"
-                : "hover:bg-gray-100 border-gray-200"
+                : "hover:bg-gray-100 border-gray-200 text-gray-600"
             }`}
           >
             ⭐ Rating
@@ -397,10 +479,10 @@ if (sortOption === "priceHigh") {
               setSortOption("priceLow");
               setShowSort(false);
             }}
-            className={`w-full text-left text-gray-500 px-4 py-2 rounded-lg border text-sm transition ${
+            className={`w-full text-left px-4 py-2 rounded-lg border text-sm transition ${
               sortOption === "priceLow"
                 ? "bg-orange-500 text-white border-orange-500"
-                : "hover:bg-gray-100 border-gray-200"
+                : "hover:bg-gray-100 border-gray-200 text-gray-600"
             }`}
           >
             💰 Price: Low → High
@@ -411,10 +493,10 @@ if (sortOption === "priceHigh") {
               setSortOption("priceHigh");
               setShowSort(false);
             }}
-            className={`w-full text-left text-gray-500 px-4 py-2 rounded-lg border text-sm transition ${
+            className={`w-full text-left px-4 py-2 rounded-lg border text-sm transition ${
               sortOption === "priceHigh"
                 ? "bg-orange-500 text-white border-orange-500"
-                : "hover:bg-gray-100 border-gray-200"
+                : "hover:bg-gray-100 border-gray-200 text-gray-600"
             }`}
           >
             💰 Price: High → Low
@@ -424,6 +506,7 @@ if (sortOption === "priceHigh") {
       </div>
     )}
   </div>
+
 </div>
       {/* Food Items */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
@@ -444,20 +527,45 @@ if (sortOption === "priceHigh") {
                 />
               </div>
               <div className="flex items-center justify-between mt-2">
-                <h3 className="text-lg font-semibold text-gray-800">
-                  {food.name}
-                </h3>
-                <button
-                  onClick={() => toggleWishlist(food.id)}
-                  className={`text-2xl transition-colors ${
-                    wishlist.includes(food.id)
-                      ? "text-red-500"
-                      : "text-gray-500"
-                  }`}
-                >
-                  {wishlist.includes(food.id) ? "❤️" : "♡"}
-                </button>
-              </div>{" "}
+
+  <div className="flex items-center gap-2">
+    
+    {/* Veg / Non-Veg Indicator */}
+    <span
+  className={`w-4 h-4 border-2 flex items-center justify-center ${
+    food.isVeg
+      ? "border-green-600"
+      : "border-red-600"
+  }`}
+>
+  <span
+    className={`w-2 h-2 rounded-full ${
+      food.isVeg
+        ? "bg-green-600"
+        : "bg-red-600"
+    }`}
+  ></span>
+</span>
+
+    <h3 className="text-lg font-semibold text-gray-800">
+      {food.name}
+    </h3>
+
+  </div>
+
+  {/* Wishlist Button */}
+  <button
+    onClick={() => toggleWishlist(food.id)}
+    className={`text-2xl transition-colors ${
+      wishlist.includes(food.id)
+        ? "text-red-500"
+        : "text-gray-500"
+    }`}
+  >
+    {wishlist.includes(food.id) ? "❤️" : "♡"}
+  </button>
+
+</div>{" "}
               <p className="text-gray-600 text-sm mt-1">{food.description}</p>
               <div className="flex items-center justify-between text-sm mt-2">
                 <div className="flex items-center gap-2">
