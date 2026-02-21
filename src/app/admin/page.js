@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { foodItemsData } from "@/data/foods";
+import toast from "react-hot-toast";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("add");
@@ -55,30 +56,30 @@ function AddFood() {
   useEffect(() => {
     const isAdmin = localStorage.getItem("isAdmin");
     if (!isAdmin) {
-      alert("Unauthorized Access");
+      toast.error("Unauthorized Access");
       window.location.href = "/";
     }
   }, []);
 
   const handleAdd = () => {
     if (!food.name.trim()) {
-      alert("Food name is required");
+      toast.error("Food name is required");
       return;
     }
     if (!food.category.trim()) {
-      alert("Category is required");
+      toast.error("Category is required");
       return;
     }
     if (!food.price || isNaN(food.price)) {
-      alert("Valid price is required");
+      toast.error("Valid price is required");
       return;
     }
     if (!food.img.trim()) {
-      alert("Image is required");
+      toast.error("Image is required");
       return;
     }
     if (!food.description.trim()) {
-      alert("Description is required");
+      toast.error("Description is required");
       return;
     }
 
@@ -88,7 +89,7 @@ function AddFood() {
       JSON.stringify([...foods, { ...food, id: Date.now() }]),
     );
 
-    alert("Food added successfully");
+    toast.success("Food added successfully");
 
     setFood({
       name: "",

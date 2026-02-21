@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -13,7 +14,7 @@ export default function OrdersPage() {
     const currentUser = localStorage.getItem("currentUser");
 
     if (!currentUser) {
-      alert("Please login first!");
+      toast.error("Please login first!");
       router.push("/login");
       return;
     }
@@ -69,7 +70,7 @@ export default function OrdersPage() {
     );
 
     if (existingReview) {
-      alert("You already rated this item for this order.");
+      toast.error("You already rated this item for this order.");
       return;
     }
 
@@ -193,15 +194,13 @@ export default function OrdersPage() {
 
                             // ❌ If no rating yet
                             if (!existing) {
-                              alert("Please rate the item first.");
+                              toast.error("Please rate the item first.");
                               return;
                             }
 
                             // ❌ If comment already exists
                             if (existing.comment) {
-                              alert(
-                                "You already added a comment for this item.",
-                              );
+                              toast.error("You already added a comment for this item.");
                               return;
                             }
 

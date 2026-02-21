@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
 import { foodItemsData } from "@/data/foods";
+import toast from "react-hot-toast";
 
 const categoriesData = [
   { name: "All", img: "/categories/all.png" },
@@ -29,7 +30,7 @@ export default function Menu() {
     const currentUser = localStorage.getItem("currentUser");
 
     if (!currentUser) {
-      alert("Please login first!");
+      toast.error("Please login first!");
       return;
     }
 
@@ -41,7 +42,7 @@ export default function Menu() {
     const currentUser = localStorage.getItem("currentUser");
 
     if (!currentUser) {
-      alert("Please login first!");
+      toast.error("Please login first!");
       return;
     }
 
@@ -58,15 +59,12 @@ export default function Menu() {
     setWishlist(userWishlist);
   }, []);
 
-  // Save wishlist to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem("wishlist", JSON.stringify(wishlist));
-  }, [wishlist]);
+  
 
   // Toggle wishlist
   const toggleWishlist = (foodId) => {
     const currentUser = localStorage.getItem("currentUser");
-    if (!currentUser) return alert("Please login to add to wishlist!");
+    if (!currentUser) return toast.error("Please login to add to wishlist!");
 
     const allWishlists = JSON.parse(localStorage.getItem("wishlists")) || {};
     const userWishlist = allWishlists[currentUser] || [];

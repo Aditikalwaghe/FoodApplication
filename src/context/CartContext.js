@@ -9,25 +9,25 @@ export function CartProvider({ children }) {
   // ✅ Load cart for logged-in user
   // ✅ Load cart whenever login/logout happens
   useEffect(() => {
-    const loadCart = () => {
-      const currentUser = localStorage.getItem("currentUser");
+  const loadCart = () => {
+    const currentUser = localStorage.getItem("currentUser");
 
-      if (currentUser) {
-        const savedCart = localStorage.getItem(`cart_${currentUser}`);
-        setCartItems(savedCart ? JSON.parse(savedCart) : {});
-      } else {
-        // 🔥 If logged out → empty cart immediately
-        setCartItems({});
-      }
-    };
+    if (currentUser) {
+      const savedCart = localStorage.getItem(`cart_${currentUser}`);
+      setCartItems(savedCart ? JSON.parse(savedCart) : {});
+    } else {
+      setCartItems({});
+    }
+  };
 
-    loadCart();
+  // Load on mount
+  loadCart();
 
-    // Listen for login/logout changes
-    window.addEventListener("storage", loadCart);
+  // Custom event listener
+  window.addEventListener("userChanged", loadCart);
 
-    return () => window.removeEventListener("storage", loadCart);
-  }, []);
+  return () => window.removeEventListener("userChanged", loadCart);
+}, []);
 
   // ✅ Save cart per user
   useEffect(() => {

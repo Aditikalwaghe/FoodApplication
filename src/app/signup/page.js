@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function Signup() {
   const router = useRouter();
@@ -25,22 +26,22 @@ export default function Signup() {
   // Signup with validations
   function handleSignup() {
     if (!form.name.trim()) {
-      alert("Name is required");
+      toast.error("Name is required");
       return;
     }
 
     if (!form.email.includes("@")) {
-      alert("Please enter a valid email");
+      toast.error("Please enter a valid email");
       return;
     }
 
     if (form.password.length < 6) {
-      alert("Password must be at least 6 characters");
+      toast.error("Password must be at least 6 characters");
       return;
     }
 
     if (!form.agree) {
-      alert("Please accept Terms & Conditions");
+      toast.error("Please accept Terms & Conditions");
       return;
     }
 
@@ -54,7 +55,7 @@ const emailExists = existingUsers.some(
 );
 
 if (emailExists) {
-  alert("An account with this email already exists!");
+  toast.error("An account with this email already exists!");
   return;
 }
 
@@ -64,14 +65,14 @@ const updatedUsers = [
   {
     name: form.name,
     email: form.email,
-    password: form.password,
+    password: btoa(form.password),
   },
 ];
 
 // Save users array
 localStorage.setItem("users", JSON.stringify(updatedUsers));
 
-alert("Account created successfully!");
+toast.success("Account created successfully!");
 router.push("/login");
 
   }

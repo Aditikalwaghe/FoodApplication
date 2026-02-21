@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function Login() {
   const router = useRouter();
@@ -11,6 +12,16 @@ export default function Login() {
     password: "",
     remember: false,
   });
+  useEffect(() => {
+  const remembered = localStorage.getItem("rememberedUser");
+  if (remembered) {
+    setForm((prev) => ({
+      ...prev,
+      email: remembered,
+      remember: true,
+    }));
+  }
+}, []);
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
@@ -22,43 +33,53 @@ export default function Login() {
 
  function handleLogin() {
   if (!form.email.includes("@")) {
-    alert("Please enter a valid email");
+    toast.error("Please enter a valid email");
     return;
   }
 
   if (form.password.length < 6) {
-    alert("Password must be at least 6 characters");
+    toast.error("Password must be at least 6 characters");
     return;
   }
 
   const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
 
   if (storedUsers.length === 0) {
-    alert("No account found. Please sign up first.");
+    toast.error("No account found. Please sign up first.");
     return;
   }
 
   const matchedUser = storedUsers.find(
     (user) =>
       user.email === form.email &&
-      user.password === form.password
+      user.password === btoa(form.password)
   );
 
   if (matchedUser) {
-    alert("Login successful!");
+  toast.success("Login successful!");
 
-    localStorage.setItem("isLoggedIn", "true");
-    localStorage.setItem("currentUser", matchedUser.email);
+  localStorage.setItem("isLoggedIn", "true");
+  localStorage.setItem("currentUser", matchedUser.email);
 
-    if (matchedUser.role === "admin") {
-      localStorage.setItem("isAdmin", "true");
-    }
+    window.dispatchEvent(new Event("userChanged"));
 
-    router.push("/");
-  } else {
-    alert("Invalid email or password");
+
+  if (matchedUser.role === "admin") {
+    localStorage.setItem("isAdmin", "true");
   }
+
+  // ✅ Remember Me logic
+  if (form.remember) {
+    localStorage.setItem("rememberedUser", matchedUser.email);
+  } else {
+    localStorage.removeItem("rememberedUser");
+  }
+
+  router.push("/");
 }
+  else {
+    toast.error("Invalid email or password");
+  }}
 
   
   return (

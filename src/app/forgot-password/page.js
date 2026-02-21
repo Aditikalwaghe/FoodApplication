@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function ForgotPassword() {
   const router = useRouter();
@@ -29,7 +30,7 @@ export default function ForgotPassword() {
     const matchedUser = users.find((u) => u.email === email);
 
     if (!matchedUser) {
-      alert("No account found with this email.");
+      toast.error("No account found with this email.");
       return;
     }
 
@@ -51,21 +52,21 @@ export default function ForgotPassword() {
   // ✅ Verify OTP
   function handleVerifyOtp() {
     if (timer === 0) {
-      alert("OTP expired. Please resend.");
+      toast.error("OTP expired. Please resend.");
       return;
     }
 
     if (otp === generatedOtp) {
       setStep(3);
     } else {
-      alert("Invalid OTP");
+      toast.error("Invalid OTP");
     }
   }
 
   // 🔐 Update Password
   function handleUpdatePassword() {
     if (newPassword.length < 6) {
-      alert("Password must be at least 6 characters");
+      toast.error("Password must be at least 6 characters");
       return;
     }
 
@@ -73,13 +74,13 @@ export default function ForgotPassword() {
 
     const updatedUsers = users.map((user) =>
       user.email === email
-        ? { ...user, password: newPassword }
+        ? { ...user, password: btoa(newPassword) }
         : user
     );
 
     localStorage.setItem("users", JSON.stringify(updatedUsers));
 
-    alert("Password updated successfully!");
+    toast.success("Password updated successfully!");
     router.push("/login");
   }
 

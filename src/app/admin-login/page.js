@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function AdminLogin() {
       localStorage.setItem("isAdmin", "true");
       router.push("/admin");
     } else {
-      alert("Invalid admin email or password");
+      toast.error("Invalid admin email or password");
     }
   };
 

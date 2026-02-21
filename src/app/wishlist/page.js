@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { foodItemsData } from "@/data/foods";
+import toast from "react-hot-toast";
 
 export default function Wishlist() {
   const { addToCart } = useCart();
@@ -24,7 +25,7 @@ export default function Wishlist() {
   }, []);
   const handleBuy = (foodId) => {
     addToCart(foodId); // Add the item to cart
-    alert("Added to Cart!"); // Optional feedback
+    toast.success("Added to Cart!"); // Optional feedback
     router.push("/cart"); // Navigate to cart page
   };
 

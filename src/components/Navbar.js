@@ -38,8 +38,7 @@ export default function Navbar() {
     setIsLoggedIn(false);
 
     // ✅ VERY IMPORTANT: Trigger cart reload instantly
-    window.dispatchEvent(new Event("storage"));
-
+window.dispatchEvent(new Event("userChanged"));
     router.replace("/");
   };
 

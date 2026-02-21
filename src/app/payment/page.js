@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
 import { foodItemsData } from "@/data/foods";
+import toast from "react-hot-toast";
 
 export default function PaymentPage() {
   const router = useRouter();
@@ -30,7 +31,7 @@ useEffect(() => {
   const currentUser = localStorage.getItem("currentUser");
 
   if (!currentUser) {
-    alert("Please login first!");
+    toast.error("Please login first!");
     router.push("/login");
   }
 }, [router]);
@@ -75,7 +76,7 @@ const cartFoods =
   // Show popup
 const handlePaymentClick = () => {
   if (!formData.name || !formData.address || !formData.email || !formData.mobile) {
-    alert("Please fill all required fields!");
+    toast.error("Please fill all required fields!");
     return;
   }
 
@@ -83,13 +84,13 @@ const handlePaymentClick = () => {
   const mobileRegex = /^[0-9]{10}$/;
 
   if (!mobileRegex.test(formData.mobile)) {
-    alert("Mobile number must be exactly 10 digits!");
+    toast.error("Mobile number must be exactly 10 digits!");
     return;
   }
 
   // ✅ Optional: Alternative mobile validation (if filled)
   if (formData.altMobile && !mobileRegex.test(formData.altMobile)) {
-    alert("Alternative mobile must be exactly 10 digits!");
+    toast.error("Alternative mobile must be exactly 10 digits!");
     return;
   }
 
@@ -100,12 +101,12 @@ const handlePaymentClick = () => {
   // Confirm payment
   const handlePaymentConfirm = () => {
     if (!selectedPaymentMethod) {
-  alert("Please select a payment method!");
+  toast.error("Please select a payment method!");
   return;
 }
 
 if (!paymentProof) {
-  alert("Please upload payment proof!");
+  toast.error("Please upload payment proof!");
   return;
 }
 
@@ -139,6 +140,10 @@ const order = {
   deliveryFee,
   total,
   status: "Pending",
+
+   paymentMethod: selectedPaymentMethod,
+  paymentId: "PAY" + Date.now(),
+
 };
 
 
@@ -152,8 +157,9 @@ const order = {
   localStorage.setItem("orders", JSON.stringify(storedOrders));
 
   // 5️⃣ Alert and redirect to Orders page
-  alert(`Payment of ₹${total} confirmed via ${selectedPaymentMethod}!`);
+  toast.success(`Payment of ₹${total} confirmed via ${selectedPaymentMethod}!`);
 clearCart();
+
 router.push("/orders");
 
 };

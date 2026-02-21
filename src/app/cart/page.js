@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { foodItemsData } from "@/data/foods";
 import { useRouter } from "next/navigation";
-
+import toast from "react-hot-toast";
 
 const getAllFoods = () => {
   const adminFoods = JSON.parse(localStorage.getItem("foods")) || [];
@@ -43,7 +43,7 @@ const handleProceed = () => {
   const isLoggedIn = localStorage.getItem("isLoggedIn");
 
   if (!isLoggedIn) {
-    alert("Please login first!");
+    toast.error("Please login first!");
     router.push("/login");
   } else {
     router.push("/payment");
