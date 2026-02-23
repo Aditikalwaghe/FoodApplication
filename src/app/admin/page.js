@@ -32,6 +32,12 @@ export default function AdminDashboard() {
         >
           Orders
         </button>
+        <button
+  onClick={() => setActiveTab("dashboard")}
+  className="w-full bg-orange-500 text-white py-1 rounded hover:text-orange-500 hover:bg-gray-200 transition"
+>
+  Dashboard
+</button>
       </div>
 
       {/* RIGHT CONTENT */}
@@ -39,6 +45,7 @@ export default function AdminDashboard() {
         {activeTab === "add" && <AddFood />}
         {activeTab === "list" && <MenuList />}
         {activeTab === "orders" && <Orders />}
+        {activeTab === "dashboard" && <Dashboard />}
       </div>
     </div>
   );
@@ -56,6 +63,12 @@ function AddFood() {
     
 
   });
+  useEffect(() => {
+  const isAdmin = localStorage.getItem("isAdmin");
+  if (!isAdmin) {
+    window.location.href = "/";
+  }
+}, []);
 
   useEffect(() => {
     const isAdmin = localStorage.getItem("isAdmin");
@@ -841,11 +854,7 @@ function Orders() {
                   <p className="text-sm">{order.mobile}</p>
                 </div>
 
-                <div className="flex flex-col sm:min-w-[150px] w-full sm:w-auto text-sm text-gray-600">
-                  {/* Status Dropdown */}
-                  <span className="text-sm font-medium text-gray-600">
-                    Status:
-                  </span>
+                <div className="flex flex-col sm:min-w-[150px] w-full sm:w-auto text-sm text-gray-600"> {/* Status Dropdown */} <span className="text-sm font-medium text-gray-600"> Status: </span>
                   <select
                     value={order.status}
                     onChange={(e) => {
@@ -890,6 +899,120 @@ function Orders() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+
+function Dashboard() {
+  const [orders, setOrders] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    const storedOrders = JSON.parse(localStorage.getItem("orders")) || [];
+    const storedReviews = JSON.parse(localStorage.getItem("reviews")) || [];
+    const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
+
+    setOrders(storedOrders);
+    setReviews(storedReviews);
+    setUsers(storedUsers);
+  }, []);
+
+  const totalOrders = orders.length;
+
+  const totalRevenue = orders.reduce(
+    (sum, order) => sum + Number(order.total),
+    0
+  );
+
+  const totalUsers = users.length;
+
+  // Most Ordered Food
+  const foodCount = {};
+  orders.forEach(order => {
+    order.items.forEach(item => {
+      if (!foodCount[item.name]) foodCount[item.name] = 0;
+      foodCount[item.name] += item.quantity;
+    });
+  });
+
+  const mostOrderedFood =
+    Object.keys(foodCount).length === 0
+      ? "N/A"
+      : Object.keys(foodCount).reduce((a, b) =>
+          foodCount[a] > foodCount[b] ? a : b
+        );
+
+  // Highest Rated Food
+  // Rating Analytics
+const ratingMap = {};
+
+reviews.forEach(r => {
+  if (!ratingMap[r.foodId]) ratingMap[r.foodId] = [];
+  ratingMap[r.foodId].push(r.rating);
+});
+
+let highestRated = "N/A";
+let highestAvg = 0;
+
+let lowestRated = "N/A";
+let lowestAvg = 5;
+
+Object.keys(ratingMap).forEach(id => {
+  const avg =
+    ratingMap[id].reduce((a, b) => a + b, 0) /
+    ratingMap[id].length;
+
+  if (avg > highestAvg) {
+    highestAvg = avg;
+    highestRated = id;
+  }
+
+  if (avg < lowestAvg) {
+    lowestAvg = avg;
+    lowestRated = id;
+  }
+});
+
+  return (
+    <div className="bg-white p-6 rounded shadow space-y-6">
+      <h2 className="text-2xl font-bold text-gray-500 text-center">
+        Admin Analytics Dashboard
+      </h2>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+
+        <div className="p-4 bg-orange-100 rounded shadow text-center">
+          <p className="text-gray-600">📦 Total Orders</p>
+          <h3 className="text-xl font-bold text-gray-500">{totalOrders}</h3>
+        </div>
+
+        <div className="p-4 bg-green-100 rounded shadow text-center">
+          <p className="text-gray-600">💰 Total Revenue</p>
+          <h3 className="text-xl font-bold text-gray-400">₹{totalRevenue}</h3>
+        </div>
+
+        <div className="p-4 bg-blue-100 rounded shadow text-center">
+          <p className="text-gray-600">👥 Total Users</p>
+          <h3 className="text-xl font-bold text-gray-500">{totalUsers}</h3>
+        </div>
+
+        <div className="p-4 bg-yellow-100 rounded shadow text-center">
+          <p className="text-gray-600">🍕 Most Ordered Food</p>
+          <h3 className="text-lg font-semibold text-gray-400">{mostOrderedFood}</h3>
+        </div>
+
+        <div className="p-4 bg-purple-100 rounded shadow text-center">
+          <p className="text-gray-600">⭐ Highest Rated Food</p>
+          <h3 className="text-lg font-semibold text-gray-500">{highestRated}</h3>
+        </div>
+        <div className="p-4 bg-red-100 rounded shadow text-center">
+  <p className="text-gray-600">📉 Lowest Rated Food</p>
+  <h3 className="text-lg font-semibold text-gray-400">{lowestRated}</h3>
+</div>
+
+      </div>
     </div>
   );
 }
