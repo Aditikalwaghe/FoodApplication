@@ -925,6 +925,43 @@ function Dashboard() {
     (sum, order) => sum + Number(order.total),
     0
   );
+  // 📅 Today's Revenue
+const today = new Date().toISOString().split("T")[0];
+
+const todaysRevenue = orders
+  .filter(order => order.date === today)
+  .reduce((sum, order) => sum + Number(order.total), 0);
+
+// 📆 This Month Revenue
+const currentMonth = new Date().getMonth();
+const currentYear = new Date().getFullYear();
+
+const monthlyRevenue = orders
+  .filter(order => {
+    const orderDate = new Date(order.date);
+    return (
+      orderDate.getMonth() === currentMonth &&
+      orderDate.getFullYear() === currentYear
+    );
+  })
+  .reduce((sum, order) => sum + Number(order.total), 0);
+
+// 📊 Orders by Status
+const statusCount = {
+  Pending: 0,
+  Delivered: 0,
+  Cancelled: 0,
+};
+
+orders.forEach(order => {
+  if (order.status === "Pending") statusCount.Pending++;
+  if (order.status === "Delivered") statusCount.Delivered++;
+  if (
+    order.status === "Cancelled" ||
+    order.status === "Cancelled by User"
+  ) statusCount.Cancelled++;
+});
+
 
   const totalUsers = users.length;
 
@@ -936,6 +973,18 @@ function Dashboard() {
       foodCount[item.name] += item.quantity;
     });
   });
+  // 🏆 Best Selling Food (by quantity)
+let bestSellingFood = "N/A";
+let highestQty = 0;
+
+if (Object.keys(foodCount).length > 0) {
+  bestSellingFood = Object.keys(foodCount).reduce((a, b) =>
+    foodCount[a] > foodCount[b] ? a : b
+  );
+  highestQty = foodCount[bestSellingFood];
+}
+  
+
 
   const mostOrderedFood =
     Object.keys(foodCount).length === 0
@@ -977,6 +1026,7 @@ Object.keys(ratingMap).forEach(id => {
 
   return (
     <div className="bg-white p-6 rounded shadow space-y-6">
+      
       <h2 className="text-2xl font-bold text-gray-500 text-center">
         Admin Analytics Dashboard
       </h2>
@@ -990,7 +1040,7 @@ Object.keys(ratingMap).forEach(id => {
 
         <div className="p-4 bg-green-100 rounded shadow text-center">
           <p className="text-gray-600">💰 Total Revenue</p>
-          <h3 className="text-xl font-bold text-gray-400">₹{totalRevenue}</h3>
+          <h3 className="text-xl font-bold text-gray-500">₹{totalRevenue}</h3>
         </div>
 
         <div className="p-4 bg-blue-100 rounded shadow text-center">
@@ -998,10 +1048,7 @@ Object.keys(ratingMap).forEach(id => {
           <h3 className="text-xl font-bold text-gray-500">{totalUsers}</h3>
         </div>
 
-        <div className="p-4 bg-yellow-100 rounded shadow text-center">
-          <p className="text-gray-600">🍕 Most Ordered Food</p>
-          <h3 className="text-lg font-semibold text-gray-400">{mostOrderedFood}</h3>
-        </div>
+       
 
         <div className="p-4 bg-purple-100 rounded shadow text-center">
           <p className="text-gray-600">⭐ Highest Rated Food</p>
@@ -1009,9 +1056,30 @@ Object.keys(ratingMap).forEach(id => {
         </div>
         <div className="p-4 bg-red-100 rounded shadow text-center">
   <p className="text-gray-600">📉 Lowest Rated Food</p>
-  <h3 className="text-lg font-semibold text-gray-400">{lowestRated}</h3>
+  <h3 className="text-lg font-semibold text-gray-500">{lowestRated}</h3>
 </div>
-
+<div className="p-4 bg-emerald-100 rounded shadow text-center">
+  <p className="text-gray-600">📅 Today's Revenue</p>
+  <h3 className="text-lg font-bold text-gray-500">₹{todaysRevenue}</h3>
+</div>
+<div className="p-4 bg-teal-100 rounded shadow text-center">
+  <p className="text-gray-600">📆 This Month Revenue</p>
+  <h3 className="text-lg font-bold text-gray-500">₹{monthlyRevenue}</h3>
+</div>
+<div className="p-4 bg-indigo-100 rounded shadow text-center">
+  <p className="text-gray-600">📊 Orders by Status</p>
+  <div className="text-sm mt-2 space-y-1">
+    <p className="text-gray-500">🕒 Pending: {statusCount.Pending}</p>
+    <p className="text-gray-500">✅ Delivered: {statusCount.Delivered}</p>
+    <p className="text-gray-500">❌ Cancelled: {statusCount.Cancelled}</p>
+  </div>
+</div>
+<div className="p-4 bg-orange-200 rounded shadow text-center">
+  <p className="text-gray-600">🏆 Best Selling Food</p>
+  <h3 className="text-lg font-semibold text-gray-500">
+    {bestSellingFood} ({highestQty})
+  </h3>
+</div>
       </div>
     </div>
   );

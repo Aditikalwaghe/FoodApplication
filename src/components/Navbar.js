@@ -173,9 +173,10 @@ export default function Navbar() {
 
           {/* Cart */}
           <button
-            onClick={() => router.push("/cart")}
-            className="relative text-gray-700 hover:text-orange-500 transition-colors duration-300"
-          >
+  id="cart-icon"
+  onClick={() => router.push("/cart")}
+  className="relative text-gray-700 hover:text-orange-500 transition-colors duration-300"
+>
             🛒
             <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full text-xs px-1">
               {cartCount}

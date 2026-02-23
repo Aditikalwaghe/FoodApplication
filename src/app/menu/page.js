@@ -54,6 +54,38 @@ useEffect(() => {
     setVegFilter("all");   // ✅ reset filter also
   }
 }, [searchQuery]);
+const flyToCart = (imgElement) => {
+  const cartIcon = document.getElementById("cart-icon");
+  if (!cartIcon || !imgElement) return;
+
+  const cartRect = cartIcon.getBoundingClientRect();
+  const imgRect = imgElement.getBoundingClientRect();
+
+  const clone = imgElement.cloneNode(true);
+
+  clone.style.position = "fixed";
+  clone.style.top = `${imgRect.top}px`;
+  clone.style.left = `${imgRect.left}px`;
+  clone.style.width = `${imgRect.width}px`;
+  clone.style.height = `${imgRect.height}px`;
+  clone.style.transition = "all 0.8s ease-in-out";
+  clone.style.zIndex = "9999";
+  clone.style.borderRadius = "10px";
+
+  document.body.appendChild(clone);
+
+  setTimeout(() => {
+    clone.style.top = `${cartRect.top}px`;
+    clone.style.left = `${cartRect.left}px`;
+    clone.style.width = "30px";
+    clone.style.height = "30px";
+    clone.style.opacity = "0.5";
+  }, 10);
+
+  setTimeout(() => {
+    document.body.removeChild(clone);
+  }, 800);
+};
 
 
   // ✅ Protect Add To Cart (Login Required)
@@ -508,10 +540,16 @@ if (sortOption === "priceHigh") {
   </div>
 
 </div>
+
+
       {/* Food Items */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        
         {filteredFoods.map((food) => {
           const { avg, count } = getAverageRating(food.id);
+
+
+
 
           return (
             <div
@@ -521,8 +559,9 @@ if (sortOption === "priceHigh") {
               {/* Food Image */}
               <div className="w-full rounded mb-2 overflow-hidden relative">
                 <img
-                  src={food.img}
-                  alt={food.name}
+  src={food.img}
+  alt={food.name}
+  ref={(el) => (food.imageRef = el)}
                   className="w-full aspect-[4/3] object-cover transition-transform duration-300 hover:scale-105"
                 />
               </div>
@@ -603,8 +642,10 @@ if (sortOption === "priceHigh") {
                     {cartItems[food.id] || 0}
                   </span>
                   <button
-                    onClick={() => handleAddToCart(food.id)}
-                    className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition"
+ onClick={() => {
+    flyToCart(food.imageRef);
+    handleAddToCart(food.id);
+  }}                    className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition"
                   >
                     +
                   </button>
